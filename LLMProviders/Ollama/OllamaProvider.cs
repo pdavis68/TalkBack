@@ -87,7 +87,7 @@ public class OllamaProvider : ILLMProvider
         OllamaParameters parameters = GenerateParameters(prompt, context as OllamaContext, true);
         var jsonContent = JsonSerializer.Serialize(parameters);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-        var response = await _httpClient.PostAsync(_options.ServerUrl + "/chat", content);
+        var response = await _httpClient.PostAsync(_options.ServerUrl + "/generate", content);
         if (context is null)
         {
             context = new OllamaContext();

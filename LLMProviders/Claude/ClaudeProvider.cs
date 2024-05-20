@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Text.Json;
 using ConversationItem = TalkBack.ModelPlugins.Claude.ClaudeContext.ConversationItem;
+using System.Diagnostics;
 
 namespace TalkBack.ModelPlugins.Claude;
 
@@ -140,10 +141,12 @@ public class ClaudeProvider : ILLMProvider
                         }
                     }));
 
+            String workingResponse = string.Empty;
             // Subscribe to the SSE events.
             var subscription = sseObservable.Subscribe(eventData =>
             {
-                if (string.IsNullOrWhiteSpace(eventData) || eventData.StartsWith("event: completion") || eventData.StartsWith("event: ping"))
+                if (string.IsNullOrWhiteSpace(eventData) 
+                    || eventData.StartsWith("event:"))
                 {
                     return;
                 }
@@ -152,31 +155,46 @@ public class ClaudeProvider : ILLMProvider
                 {
                     eventData = eventData.Substring(6);
                 }
-                var response = JsonSerializer.Deserialize<ClaudeMessageResponse>(eventData);
+                var response = JsonSerializer.Deserialize<ClaudeStreamingData>(eventData);
                 if (response is null)
                 {
                     return;
                 }
-                bool final = response.StopReason == "stop_sequence";
-                (context as ClaudeContext)!.PartialResponse += response.Content?[0].Text;
+                bool final = false;
+                if (response.Type != "content_block_delta")
+                {
+                    if (response.Type == "message_stop")
+                    {
+                        final = true;
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Response type: {response.Type}");
+                        return;
+                    }
+                }
+
+                var textResponse = response?.Delta?.Text ?? string.Empty;
+                workingResponse += textResponse;
+                (context as ClaudeContext)!.PartialResponse += textResponse;
                 if (final)
                 {
                     (context as ClaudeContext)!.ContextData.Add(new ConversationItem()
                     {
-                        Assistant = (context as ClaudeContext)!.PartialResponse,
+                        Assistant = workingResponse,
                         User = (context as ClaudeContext)!.CurrentPrompt
                     });
+                    workingResponse = string.Empty;
 
                     if ((context as ClaudeContext)!.CompletionCallback is not null)
                     {
                         (context as ClaudeContext)!.CompletionCallback!.Complete(Name, $"Model: {parameters.Model}", (context as ClaudeContext)!.CurrentPrompt, (context as ClaudeContext)!.PartialResponse);
                     }
-                    (context as ClaudeContext)!.ContextData.Add(new ConversationItem() {  User = (context as ClaudeContext)!.CurrentPrompt, Assistant = (context as ClaudeContext)!.PartialResponse });
                 }
                 receiver.ReceiveCompletionPartAsync(new ClaudeResponse()
                 {
                     Context = context,
-                    Response = response.Content?[0].Text ?? ""
+                    Response = response?.Delta?.Text ?? ""
                 }, final);
             });
         }

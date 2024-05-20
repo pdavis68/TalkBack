@@ -1,6 +1,6 @@
 # TalkBack
 
-TalkBack is a library that abstracts out completions using LLMs.
+TalkBack is a library that abstracts out chat with LLMs.
 
 ## Overview
 
@@ -127,3 +127,6 @@ public class StreamReceiver : ICompletionReceiver
 }
 ```
 
+## To Do
+
+- Add support for images.

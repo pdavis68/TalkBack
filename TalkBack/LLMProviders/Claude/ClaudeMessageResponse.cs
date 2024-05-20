@@ -2,7 +2,7 @@
 
 namespace TalkBack.LLMProviders.Claude;
 
-internal class ClaudeMessageResponse
+public class ClaudeMessageResponse
 {
     [JsonPropertyName("content")]
     public ClaudeMessageItem[]? Content { get; set; }
@@ -20,7 +20,7 @@ internal class ClaudeMessageResponse
     public string? Id { get; set; }
 }
 
-internal class ClaudeMessageItem
+public class ClaudeMessageItem
 {
     [JsonPropertyName("text")]
     public string? Text { get; set; }

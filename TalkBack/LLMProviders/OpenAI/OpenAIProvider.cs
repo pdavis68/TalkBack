@@ -17,14 +17,14 @@ public class OpenAIProvider : ILLMProvider
     private const string USER = "user";
     private const string ASSISTANT = "assistant";
 
-    private readonly HttpClient _httpClient;
+    private readonly IHttpHandler _httpHandler;
     private readonly ILogger _logger;
     private OpenAIOptions? _options;
 
-    public OpenAIProvider(ILogger<OpenAIProvider> logger, HttpClient httpClient)
+    public OpenAIProvider(ILogger<OpenAIProvider> logger, IHttpHandler httpHandler)
     {
         _logger = logger;
-        _httpClient = httpClient;
+        _httpHandler = httpHandler;
     }
     public string Name => "OpenAI";
 
@@ -56,7 +56,7 @@ public class OpenAIProvider : ILLMProvider
         };
         request.Headers.Add("Authorization", $"Bearer {_options.ApiKey}");
         var req = request.Content.ReadAsStringAsync().Result;
-        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         if (!response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException($"Failure calling OpenAI completions endpoint. Status Code: {response.StatusCode}");
@@ -91,7 +91,7 @@ public class OpenAIProvider : ILLMProvider
 
     public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null)
     {
-        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
+        _httpHandler.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
 
         if (context is null)
         {
@@ -113,7 +113,7 @@ public class OpenAIProvider : ILLMProvider
         };
         request.Headers.Add("Authorization", $"Bearer {_options.ApiKey}");
         var req = request.Content.ReadAsStringAsync().Result;
-        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
         // Set current prompt and partial response
         var oContext = (OpenAIContext)context;

@@ -11,16 +11,16 @@ namespace TalkBack.LLMProviders.Ollama;
 public class OllamaProvider : ILLMProvider
 {
     private readonly ILogger<OllamaProvider> _logger;
-    private readonly HttpClient _httpClient;
+    private readonly IHttpHandler _httpHandler;
     private OllamaOptions? _options;
 
     /// <summary>
     /// Ollama API docs: https://github.com/jmorganca/ollama/blob/main/docs/api.md
     /// </summary>
-    public OllamaProvider(ILogger<OllamaProvider> logger, HttpClient httpClient)
+    public OllamaProvider(ILogger<OllamaProvider> logger, IHttpHandler httpHandler)
     {
         _logger = logger;
-        _httpClient = httpClient;
+        _httpHandler = httpHandler;
     }
 
     public bool SupportsStreaming => true;
@@ -52,7 +52,7 @@ public class OllamaProvider : ILLMProvider
         OllamaParameters parameters = GenerateParameters(newPrompt, context as OllamaContext, false);
         var jsonContent = JsonSerializer.Serialize(parameters);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-        var response = await _httpClient.PostAsync(_options.ServerUrl + "/generate", content);
+        var response = await _httpHandler.PostAsync(_options.ServerUrl + "/generate", content);
         var result = await response.Content.ReadAsStringAsync();
 
         if (context is null)
@@ -86,7 +86,7 @@ public class OllamaProvider : ILLMProvider
         OllamaParameters parameters = GenerateParameters(prompt, context as OllamaContext, true);
         var jsonContent = JsonSerializer.Serialize(parameters);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-        var response = await _httpClient.PostAsync(_options.ServerUrl + "/generate", content);
+        var response = await _httpHandler.PostAsync(_options.ServerUrl + "/generate", content);
         if (context is null)
         {
             context = new OllamaContext();

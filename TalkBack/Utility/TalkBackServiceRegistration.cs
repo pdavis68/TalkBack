@@ -4,7 +4,7 @@ using TalkBack.LLMProviders.Ollama;
 using TalkBack.LLMProviders.OpenAI;
 using TalkBack.LLMProviders.Claude;
 
-namespace TalkBack;
+namespace TalkBack.Utility;
 
 
 public static class TalkBackServiceRegistration
@@ -16,6 +16,7 @@ public static class TalkBackServiceRegistration
 
         services.AddTransient<IProviderActivator, ProviderActivator>();
         services.AddTransient<ILLM, LLM>();
+        services.AddTransient<IHttpHandler, HttpHandler>();
 
         services.AddTransient(typeof(OllamaProvider));
         services.AddTransient(typeof(OpenAIProvider));

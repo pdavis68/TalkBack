@@ -46,8 +46,7 @@ namespace TalkBack.Test
             // Arrange
             var receiver = Substitute.For<ICompletionReceiver>();
             var prompt = "Test Prompt";
-            var llmProvider = Substitute.For<ILLMProvider>();
-            _llm.SetProvider(llmProvider);
+
 
             // Act & Assert
             await Assert.ThrowsAsync<NoProviderSetException>(() => _llm.StreamCompletionAsync(receiver, prompt));

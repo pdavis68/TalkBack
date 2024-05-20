@@ -1,5 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using NSubstitute;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using TalkBack.Interfaces;
 using TalkBack.LLMProviders.Claude;
 
 namespace TalkBack.Test.LLMProviders.Claude;
@@ -9,27 +14,26 @@ public class ClaudeProviderTests
     private readonly ClaudeProvider _claudeProvider;
 
 
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly HttpClient _httpClient;
+    private readonly IHttpHandler _httpHandler;
     private readonly ILogger<ClaudeProvider>  _logger = Substitute.For<ILogger<ClaudeProvider>>();
 
     public ClaudeProviderTests()
     {
-        
-        _httpClientFactory = Substitute.For<IHttpClientFactory>();
-        _httpClient = Substitute.For<HttpClient>();
-        _httpClientFactory.CreateClient().Returns(_httpClient);
-        _claudeProvider = new ClaudeProvider(_logger, _httpClientFactory);
+
+        _httpHandler = Substitute.For<IHttpHandler>();
+        _claudeProvider = new ClaudeProvider(_logger, _httpHandler);
     }
 
     [Fact]
     public async Task CompleteAsync_ThrowsException_WhenInitProviderNotCalled()
     {
-        // Arrange
+        // Arrange 
+
+        // oops
+
+        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => _claudeProvider.CompleteAsync("test prompt"));
 
-        // Verify that InitProvider was not called
-        _httpClientFactory.DidNotReceive().CreateClient();
     }
 
     [Fact]
@@ -42,20 +46,35 @@ public class ClaudeProviderTests
             AnthropicVersion = "2023-06-01",
             ApiKey = "key"
         };
-        
+
+        var headers = new HttpRequestMessage().Headers;
+        _httpHandler.DefaultRequestHeaders.Returns(headers);
+        _claudeProvider.InitProvider(options);
+
+
+        var mi = new ClaudeMessageItem[1];
+        mi[0] = new ClaudeMessageItem()
+        {
+            Text = "hello"
+        };
+        ClaudeMessageResponse cmr = new ClaudeMessageResponse()
+        {
+            Content = mi
+        };
+        var successfulResponse = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+
+            Content = JsonContent.Create(cmr)
+        };
+
 
         // Act & Assert
-        _claudeProvider.InitProvider(options);
+        _httpHandler.PostAsync(Arg.Any<string>(), Arg.Any<HttpContent>())
+            .Returns(Task.FromResult(successfulResponse));
         var response = await _claudeProvider.CompleteAsync("test prompt");
-
-        // Verify that HttpClient was configured correctly
-        _httpClientFactory.Received().CreateClient();
-        _httpClientFactory.ReceivedWithAnyArgs().CreateClient(Arg.Any<string>());
 
         // Additional assertions based on expected behavior of CompleteAsync
         // Note: This example assumes a successful completion, adjust according to your expectations
         Assert.NotNull(response);
     }
-
-    // Add more tests here to cover other edge cases and behaviors of CompleteAsync
 }

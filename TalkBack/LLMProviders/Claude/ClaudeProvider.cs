@@ -15,13 +15,13 @@ namespace TalkBack.LLMProviders.Claude;
 public class ClaudeProvider : ILLMProvider
 {
     private readonly ILogger<ClaudeProvider> _logger;
-    private readonly HttpClient _httpClient;
+    private readonly IHttpHandler _httpHandler;
     private ClaudeOptions? _options;
 
-    public ClaudeProvider(ILogger<ClaudeProvider> logger, IHttpClientFactory httpClientFactory)
+    public ClaudeProvider(ILogger<ClaudeProvider> logger, IHttpHandler httpHandler)
     {
         _logger = logger;
-        _httpClient = httpClientFactory.CreateClient();
+        _httpHandler = httpHandler;
     }
 
     public bool SupportsStreaming => true;
@@ -45,8 +45,8 @@ public class ClaudeProvider : ILLMProvider
         {
             throw new InvalidOptionsException("The Claude Provider requires an instance of the ClaudeOptions class with a valid Model!");
         }
-        _httpClient.DefaultRequestHeaders.Add("anthropic-version", _options.AnthropicVersion);
-        _httpClient.DefaultRequestHeaders.Add("x-api-key", _options.ApiKey);
+        _httpHandler.DefaultRequestHeaders.Add("anthropic-version", _options.AnthropicVersion);
+        _httpHandler.DefaultRequestHeaders.Add("x-api-key", _options.ApiKey);
     }
 
     public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null)
@@ -54,6 +54,10 @@ public class ClaudeProvider : ILLMProvider
         if (_options is null)
         {
             throw new InvalidOperationException("You must Init the provider first.");
+        }
+        if (context is null)
+        {
+            context = new ClaudeContext();
         }
         if (context is null || context is not ClaudeContext)
         {
@@ -63,7 +67,7 @@ public class ClaudeProvider : ILLMProvider
         ClaudeParameters parameters = GenerateParameters(messages, context as ClaudeContext, false);
         var jsonContent = JsonSerializer.Serialize(parameters);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-        var response = await _httpClient.PostAsync("https://api.anthropic.com/v1/messages", content);
+        var response = await _httpHandler.PostAsync("https://api.anthropic.com/v1/messages", content);
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception($"{response.StatusCode} - {response.ReasonPhrase}");
@@ -105,7 +109,7 @@ public class ClaudeProvider : ILLMProvider
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
         content.Headers.Add("anthropic-version", "2023-06-01");
         content.Headers.Add("x-api-key", _options.ApiKey);
-        var response = await _httpClient.PostAsync("https://api.anthropic.com/v1/messages", content);
+        var response = await _httpHandler.PostAsync("https://api.anthropic.com/v1/messages", content);
 
 
         if (context is null)

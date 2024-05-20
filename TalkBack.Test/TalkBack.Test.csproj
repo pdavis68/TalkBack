@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TalkBack\TalkBack\TalkBack.csproj" />
+    <ProjectReference Include="..\TalkBack\TalkBack.csproj" />
   </ItemGroup>
 
 </Project>

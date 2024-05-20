@@ -17,7 +17,7 @@ TalkBack utilizes a "IConversationContext" that maintains the history of a conve
 	Call the RegisterTalkBack() extension method on IServiceCollection, to 
 add all the services to the DI container.
 
-```
+```csharp
 using TalkBack;
 
 ...
@@ -27,7 +27,7 @@ using TalkBack;
 
 ## Example
 
-```
+```csharp
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using TalkBack;

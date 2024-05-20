@@ -12,5 +12,4 @@ public class OpenAIOptions : IModelOptions
     public int FrequencyPenalty { get; set; }
     public int PresencePenalty { get; set; }
     public int Stop { get; set; }
-    public bool Stream { get; set; }
 }

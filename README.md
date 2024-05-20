@@ -25,15 +25,18 @@ using TalkBack;
 ```
 
 
-## Usage
+## Example
 
 ```
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 using TalkBack;
 using TalkBack.Interfaces;
 using TalkBack.LLMProviders.Claude;
 using TalkBack.LLMProviders.Ollama;
 using TalkBack.LLMProviders.OpenAI;
+
+bool streaming = true; // <-- Change to false for blocking version.
 
 var services = new ServiceCollection();
 services.RegisterTalkBack();
@@ -68,33 +71,59 @@ provider!.InitProvider(new ClaudeOptions()
 });
 */
 
-var provider = providerActivator!.CreateProvider<OpenAIProvider>();
-provider!.InitProvider(new OpenAIOptions()
+var provider = providerActivator!.CreateProvider<OllamaProvider>();
+provider!.InitProvider(new OllamaOptions()
 {
-    ApiKey = "<your key here>",
-    Model = "gpt-3.5-turbo"
+    ServerUrl = "http://localhost:11434/api",
+    Model = "llama2"
 });
-
-
 
 llm!.SetProvider(provider);
 
-string prompt = string.Empty;
-Console.WriteLine("'q' + enter to quit");
-
+var streamReceiver = new StreamReceiver();
 
 var conversationContext = llm.CreateNewContext();
+
+string prompt = string.Empty;
+Console.WriteLine("'q' + enter to quit");
 while (prompt.ToLower() != "q")
 {
     Console.Write("> ");
     prompt = Console.ReadLine() ?? string.Empty;
-    var result = llm.CompleteAsync(prompt, conversationContext).Result;
-    Console.WriteLine(Environment.NewLine + "Response: " + result.Response + Environment.NewLine);
+    if (streaming)
+    {
+        streamReceiver.Done = false;
+        Console.Write(Environment.NewLine + "Response: ");
+        await llm.StreamCompletionAsync(streamReceiver, prompt, conversationContext);
 
+        // Wait for it to finish streaming.
+        while(!streamReceiver.Done)
+        {
+            Thread.Sleep(1000);
+        }
+        Console.WriteLine(Environment.NewLine);
+    }
+    else
+    {
+        var result = await llm.CompleteAsync(prompt, conversationContext);
+        Console.WriteLine(Environment.NewLine + "Response: " + result.Response + Environment.NewLine);
+    }
+
+}
+
+
+public class StreamReceiver : ICompletionReceiver
+{
+    public bool Done { get; set; } = true;
+    public Task ReceiveCompletionPartAsync(IModelResponse response, bool final)
+    {
+        Done = final;
+        if (!final)
+        {
+            Console.Write(response.Response);
+        }
+        return Task.CompletedTask;
+    }
 }
 ```
 
-
-## To Do
-
-- Provide access to the conversation history.

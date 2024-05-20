@@ -17,7 +17,6 @@ public class ClaudeOptions : IModelOptions
 
 
     // Optional options
-    public bool Stream { get; set; } = false;
     public string[]? StopSequences { get; set; }
     public decimal Temperature { get; set; }
     public decimal TopP { get; set; }

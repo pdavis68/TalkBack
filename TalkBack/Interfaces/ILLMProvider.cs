@@ -2,7 +2,7 @@
 
 public interface ILLMProvider
 {
-    void InitProvider(IModelOptions? options);
+    void InitProvider(IProviderOptions? options);
 
     public string Name { get; }
 

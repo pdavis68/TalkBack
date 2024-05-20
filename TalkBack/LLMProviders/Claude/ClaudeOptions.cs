@@ -2,7 +2,7 @@
 
 namespace TalkBack.LLMProviders.Claude;
 
-public class ClaudeOptions : IModelOptions
+public class ClaudeOptions : IProviderOptions
 {
     /// <summary>
     ///  Model parameters: https://github.com/jmorganca/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values

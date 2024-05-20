@@ -2,7 +2,7 @@
 
 namespace TalkBack.LLMProviders.OpenAI;
 
-public class OpenAIOptions : IModelOptions
+public class OpenAIOptions : IProviderOptions
 {
     public string? ApiKey { get; set; }
     public string? Model { get; set; }

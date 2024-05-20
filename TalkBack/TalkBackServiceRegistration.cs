@@ -2,7 +2,7 @@
 using TalkBack.Interfaces;
 using TalkBack.LLMProviders.Ollama;
 using TalkBack.LLMProviders.OpenAI;
-using TalkBack.ModelPlugins.Claude;
+using TalkBack.LLMProviders.Claude;
 
 namespace TalkBack;
 

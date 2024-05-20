@@ -1,6 +1,6 @@
 ﻿using TalkBack.Interfaces;
 
-namespace TalkBack.ModelPlugins.Claude;
+namespace TalkBack.LLMProviders.Claude;
 
 internal class ClaudeContext : IConversationContext
 {

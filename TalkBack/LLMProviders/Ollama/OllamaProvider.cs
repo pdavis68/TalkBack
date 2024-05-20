@@ -5,7 +5,6 @@ using TalkBack.Exceptions;
 using TalkBack.Interfaces;
 using Microsoft.Extensions.Logging;
 using ConversationItem = TalkBack.LLMProviders.Ollama.OllamaContext.ConversationItem;
-using TalkBack.ModelPlugins.Claude;
 
 namespace TalkBack.LLMProviders.Ollama;
 
@@ -28,7 +27,7 @@ public class OllamaProvider : ILLMProvider
 
     public string Name => "Ollama";
 
-    public void InitProvider(IModelOptions? options)
+    public void InitProvider(IProviderOptions? options)
     {
         _logger.LogDebug("Initializing OllamaPlugin with provided options.");
         _options = options as OllamaOptions;

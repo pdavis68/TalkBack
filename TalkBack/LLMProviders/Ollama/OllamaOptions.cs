@@ -2,7 +2,7 @@ using TalkBack.Interfaces;
 
 namespace TalkBack.LLMProviders.Ollama;
 
-public class OllamaOptions : IModelOptions 
+public class OllamaOptions : IProviderOptions 
 {
     /// <summary>
     ///  Model parameters: https://github.com/jmorganca/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values

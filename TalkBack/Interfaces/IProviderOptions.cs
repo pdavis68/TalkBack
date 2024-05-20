@@ -1,5 +1,5 @@
 namespace TalkBack.Interfaces;
-public class IModelOptions
+public class IProviderOptions
 {
     
 }

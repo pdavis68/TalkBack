@@ -1,14 +1,13 @@
 ﻿using TalkBack.Exceptions;
 using TalkBack.Interfaces;
-using TalkBack.LLMProviders.Claude;
 using Microsoft.Extensions.Logging;
 using System.Reactive.Linq;
 using System.Text;
 using System.Text.Json;
-using ConversationItem = TalkBack.ModelPlugins.Claude.ClaudeContext.ConversationItem;
+using ConversationItem = TalkBack.LLMProviders.Claude.ClaudeContext.ConversationItem;
 using System.Diagnostics;
 
-namespace TalkBack.ModelPlugins.Claude;
+namespace TalkBack.LLMProviders.Claude;
 
 /// <summary>
 /// Claude API docs: https://docs.anthropic.com/claude/reference/getting-started-with-the-api
@@ -19,17 +18,17 @@ public class ClaudeProvider : ILLMProvider
     private readonly HttpClient _httpClient;
     private ClaudeOptions? _options;
 
-    public ClaudeProvider(ILogger<ClaudeProvider> logger, HttpClient httpClient)
+    public ClaudeProvider(ILogger<ClaudeProvider> logger, IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient();
     }
 
     public bool SupportsStreaming => true;
 
     public string Name => "Claude";
 
-    public void InitProvider(IModelOptions? options)
+    public void InitProvider(IProviderOptions? options)
     {
         _logger.LogDebug("Initializing ClaudeProvider with provided options.");
         if (_options != null)
@@ -37,10 +36,14 @@ public class ClaudeProvider : ILLMProvider
             throw new InvalidOptionsException("You can only initialize the ClaudeProvider once!");
         }
         _options = options as ClaudeOptions;
-        if (_options is null || string.IsNullOrEmpty(_options.Model))
+        if (_options is null)
         {
             _options = null;
-            throw new InvalidOptionsException("The Claude Provider requires an instance of the ClaudeOptions class with a valid Model and ServerUrl!");
+            throw new InvalidOptionsException("The Claude Provider requires an instance of the ClaudeOptions class with a valid Model!");
+        }
+        if (string.IsNullOrEmpty(_options.Model))
+        {
+            throw new InvalidOptionsException("The Claude Provider requires an instance of the ClaudeOptions class with a valid Model!");
         }
         _httpClient.DefaultRequestHeaders.Add("anthropic-version", _options.AnthropicVersion);
         _httpClient.DefaultRequestHeaders.Add("x-api-key", _options.ApiKey);
@@ -50,9 +53,9 @@ public class ClaudeProvider : ILLMProvider
     {
         if (_options is null)
         {
-            throw new InvalidOperationException("You must Init the model first.");
+            throw new InvalidOperationException("You must Init the provider first.");
         }
-        if (context is not null && context is not ClaudeContext)
+        if (context is null || context is not ClaudeContext)
         {
             throw new InvalidConversationContextException("Received an invalid context.");
         }

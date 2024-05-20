@@ -78,7 +78,7 @@ public class OpenAIProvider : ILLMProvider
         throw new InvalidOperationException("Completion had no choices.");
     }
 
-    public void InitProvider(IModelOptions? options)
+    public void InitProvider(IProviderOptions? options)
     {
         _logger.LogDebug("Initializing OllamaPlugin with provided options.");
         if (options is null || options is not OpenAIOptions || string.IsNullOrEmpty((options as OpenAIOptions)!.Model))

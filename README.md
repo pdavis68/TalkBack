@@ -128,6 +128,6 @@ public class StreamReceiver : ICompletionReceiver
 }
 ```
 
-## To Do
+## More
 
-- Add support for images.
+See the Wiki

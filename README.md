@@ -38,12 +38,13 @@ using TalkBack.LLMProviders.OpenAI;
 
 bool streaming = true; // <-- Change to false for blocking version.
 
+// Add services for DI and add TalkBack
 var services = new ServiceCollection();
 services.RegisterTalkBack();
+
 var serviceProvider = services.BuildServiceProvider();
 
 var providerActivator = serviceProvider.GetService<IProviderActivator>();
-
 var llm = serviceProvider.GetService<ILLM>();
 
 /*

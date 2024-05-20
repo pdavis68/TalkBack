@@ -27,6 +27,9 @@ using TalkBack;
 
 ## Example
 
+This is a command-line chat app. When you run it, it will give you a prompt: "> ", and you type your prompt. It will then respond. The conversation continues until you enter "q" on a blank line and hit enter.
+Simply change the provider setup to change LLMs.
+
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;

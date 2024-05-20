@@ -1,6 +1,6 @@
 # TalkBack
 
-TalkBack is a library that abstracts out completions using LLMs.
+TalkBack is a library that abstracts out chat with LLMs.
 
 ## Overview
 
@@ -17,7 +17,7 @@ TalkBack utilizes a "IConversationContext" that maintains the history of a conve
 	Call the RegisterTalkBack() extension method on IServiceCollection, to 
 add all the services to the DI container.
 
-```
+```csharp
 using TalkBack;
 
 ...
@@ -27,7 +27,10 @@ using TalkBack;
 
 ## Example
 
-```
+This is a command-line chat app. When you run it, it will give you a prompt: "> ", and you type your prompt. It will then respond. The conversation continues until you enter "q" on a blank line and hit enter.
+Simply change the provider setup to change LLMs.
+
+```csharp
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using TalkBack;
@@ -38,12 +41,13 @@ using TalkBack.LLMProviders.OpenAI;
 
 bool streaming = true; // <-- Change to false for blocking version.
 
+// Add services for DI and add TalkBack
 var services = new ServiceCollection();
 services.RegisterTalkBack();
+
 var serviceProvider = services.BuildServiceProvider();
 
 var providerActivator = serviceProvider.GetService<IProviderActivator>();
-
 var llm = serviceProvider.GetService<ILLM>();
 
 /*
@@ -127,3 +131,6 @@ public class StreamReceiver : ICompletionReceiver
 }
 ```
 
+## More
+
+See the Wiki

@@ -133,4 +133,4 @@ public class StreamReceiver : ICompletionReceiver
 
 ## More
 
-See the Wiki
+See the Wiki for some more realistic examples with normal dependency injection.

@@ -4,6 +4,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Authors>Pete Davis</Authors>
+    <Description>A library that provides a common interface to multiple LLM APIs (Ollama, OpenAI, Claude, or roll your own provider) while still retaining access to custom variables and settings for those providers.</Description>
+    <Title>TalkBack-LLM</Title>
+	<PackageId>TalkBack-LLM</PackageId>
+    <IncludeSymbols>True</IncludeSymbols>
+    <VersionPrefix>1.0.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>

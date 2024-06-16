@@ -12,6 +12,10 @@ otherwise single interface for interacting with the APIs, whether executing bloc
 
 TalkBack utilizes a "IConversationContext" that maintains the history of a conversation for maintaining context between calls.
 
+## Installation
+
+```dotnet add package TalkBack-LLM```
+
 ## Startup
 
 	Call the RegisterTalkBack() extension method on IServiceCollection, to 

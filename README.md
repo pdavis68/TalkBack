@@ -14,12 +14,13 @@ TalkBack utilizes a "IConversationContext" that maintains the history of a conve
 
 ## Installation
 
-```dotnet add package TalkBack-LLM```
+```
+dotnet add package TalkBack-LLM
+```
 
 ## Startup
 
-	Call the RegisterTalkBack() extension method on IServiceCollection, to 
-add all the services to the DI container.
+	Call the RegisterTalkBack() extension method on IServiceCollection, to add all the services to the DI container.
 
 ```csharp
 using TalkBack;
@@ -30,6 +31,38 @@ using TalkBack;
 
 
 ## Example
+
+The non-streaming version of the code is very simple:
+
+```csharp
+_conversationContext.SystemMessage = "You are an expert C# programmer!";
+var result = await _llm.CompleteAsync("Please write a command-line C# program to retrieve the current weather for Paris, France, from OpenWeather.", _conversationContext);
+string responseText = result.Response;
+```
+
+The streaming version isn't much more complicated:
+
+```csharp
+public class MyClass : ICompletionReceiver
+{
+
+...
+    public SomeMethod()
+    {
+        await _llm.StreamCompletionAsync(this, prompt, _conversationContext);
+    }
+...
+
+    public async Task ReceiveCompletionPartAsync(IModelResponse response, bool final)
+    {
+        if (!final) // final contains a copy of the entire response that was streamed.
+        {
+            Console.Write(response.Response);
+        }
+        return;
+    }
+```
+
 
 This is a command-line chat app. When you run it, it will give you a prompt: "> ", and you type your prompt. It will then respond. The conversation continues until you enter "q" on a blank line and hit enter.
 Simply change the provider setup to change LLMs.

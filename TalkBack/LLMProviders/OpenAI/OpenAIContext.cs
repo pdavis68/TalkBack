@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualBasic;
-using TalkBack.Interfaces;
+﻿using TalkBack.Interfaces;
+using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.OpenAI;
 
@@ -17,14 +17,8 @@ internal class OpenAIContext : IConversationContext
         CompletionCallback = completionCallback;
     }
 
-    public IEnumerable<IConversationItem> GetConverstationHistory()
+    public IEnumerable<ConversationItem> GetConverstationHistory()
     {
         return Conversation;
-    }
-
-    public class ConversationItem : IConversationItem
-    {
-        public string? User { get; set; }
-        public string? Assistant { get; set; }
     }
 }

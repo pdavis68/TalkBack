@@ -4,7 +4,7 @@ using System.Text.Json;
 using TalkBack.Exceptions;
 using TalkBack.Interfaces;
 using Microsoft.Extensions.Logging;
-using static TalkBack.LLMProviders.OpenAI.OpenAIContext;
+using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.OpenAI;
 

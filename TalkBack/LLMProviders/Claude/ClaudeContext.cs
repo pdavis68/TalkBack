@@ -1,4 +1,5 @@
 ﻿using TalkBack.Interfaces;
+using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.Claude;
 
@@ -11,7 +12,7 @@ internal class ClaudeContext : IConversationContext
 
     internal ICompletionCallback? CompletionCallback { get; set; } = null;
 
-    public IEnumerable<IConversationItem> GetConverstationHistory()
+    public IEnumerable<ConversationItem> GetConverstationHistory()
     {
         return ContextData;
     }
@@ -21,9 +22,4 @@ internal class ClaudeContext : IConversationContext
         CompletionCallback = completionCallback;
     }
 
-    internal class ConversationItem : IConversationItem
-    {
-        internal string User { get; set; } = string.Empty;
-        internal string Assistant { get; set; } = string.Empty;
-    }
 }

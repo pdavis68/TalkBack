@@ -1,10 +1,10 @@
 ﻿using TalkBack.Exceptions;
 using TalkBack.Interfaces;
+using TalkBack.Models;
 using Microsoft.Extensions.Logging;
 using System.Reactive.Linq;
 using System.Text;
 using System.Text.Json;
-using ConversationItem = TalkBack.LLMProviders.Claude.ClaudeContext.ConversationItem;
 using System.Diagnostics;
 
 namespace TalkBack.LLMProviders.Claude;

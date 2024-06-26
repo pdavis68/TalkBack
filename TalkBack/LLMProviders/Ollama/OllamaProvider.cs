@@ -3,8 +3,8 @@ using System.Text;
 using System.Text.Json;
 using TalkBack.Exceptions;
 using TalkBack.Interfaces;
+using TalkBack.Models;
 using Microsoft.Extensions.Logging;
-using ConversationItem = TalkBack.LLMProviders.Ollama.OllamaContext.ConversationItem;
 
 namespace TalkBack.LLMProviders.Ollama;
 

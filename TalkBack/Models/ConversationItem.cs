@@ -1,6 +1,6 @@
-﻿namespace TalkBack.Interfaces;
+﻿namespace TalkBack.Models;
 
-public class IConversationItem
+public class ConversationItem
 {
     public string User { get; set; }  = string.Empty;
     public string Assistant { get; set; } = string.Empty;

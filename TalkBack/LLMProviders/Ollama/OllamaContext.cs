@@ -1,4 +1,5 @@
 ﻿using TalkBack.Interfaces;
+using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.Ollama;
 
@@ -16,14 +17,8 @@ internal class OllamaContext : IConversationContext
         CompletionCallback = completionCallback;
     }
 
-    public IEnumerable<IConversationItem> GetConverstationHistory()
+    public IEnumerable<ConversationItem> GetConverstationHistory()
     {
         return Conversation;
-    }
-
-    public class ConversationItem : IConversationItem
-    {
-        public string User { get; set; } = string.Empty;
-        public string Assistant { get; set; } = string.Empty;
     }
 }

@@ -6,7 +6,11 @@ namespace TalkBack.Utility;
 
 public class HttpHandler : IHttpHandler
 {
-    private HttpClient _client = new HttpClient();
+    private readonly HttpClient _client;
+    public HttpHandler(IHttpClientFactory clientFactory)
+    {
+        _client = clientFactory.CreateClient();
+    }
 
     public HttpRequestHeaders DefaultRequestHeaders
     {

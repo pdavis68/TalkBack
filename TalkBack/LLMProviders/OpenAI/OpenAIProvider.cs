@@ -55,14 +55,14 @@ public class OpenAIProvider : ILLMProvider
             }), Encoding.UTF8, "application/json"),
         };
         request.Headers.Add("Authorization", $"Bearer {_options.ApiKey}");
-        var req = request.Content.ReadAsStringAsync().Result;
+        var req = await request.Content.ReadAsStringAsync();
         using var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         if (!response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException($"Failure calling OpenAI completions endpoint. Status Code: {response.StatusCode}");
         }
 
-        var result = response.Content.ReadAsStringAsync().Result;
+        var result = await response.Content.ReadAsStringAsync();
         var completion = JsonSerializer.Deserialize<OpenAICompletionsResponse>(result);
         if (completion is null)
         {
@@ -112,8 +112,8 @@ public class OpenAIProvider : ILLMProvider
             }), Encoding.UTF8, "application/json"),
         };
         request.Headers.Add("Authorization", $"Bearer {_options.ApiKey}");
-        var req = request.Content.ReadAsStringAsync().Result;
-        using var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        var req = await request.Content.ReadAsStringAsync();
+        var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
         // Set current prompt and partial response
         var oContext = (OpenAIContext)context;

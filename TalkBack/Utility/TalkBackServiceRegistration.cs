@@ -3,6 +3,7 @@ using TalkBack.Interfaces;
 using TalkBack.LLMProviders.Ollama;
 using TalkBack.LLMProviders.OpenAI;
 using TalkBack.LLMProviders.Claude;
+using TalkBack.LLMProviders.Groq;
 
 namespace TalkBack.Utility;
 
@@ -20,6 +21,7 @@ public static class TalkBackServiceRegistration
 
         services.AddTransient(typeof(OllamaProvider));
         services.AddTransient(typeof(OpenAIProvider));
+        services.AddTransient(typeof(GroqProvider));
         services.AddTransient(typeof(ClaudeProvider));
 
         return services;

@@ -1,17 +1,14 @@
-﻿using System.Net.Http.Headers;
+﻿using Microsoft.Extensions.Logging;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using TalkBack.Exceptions;
 using TalkBack.Interfaces;
-using Microsoft.Extensions.Logging;
 using TalkBack.Models;
 
-namespace TalkBack.LLMProviders.OpenAI;
+namespace TalkBack.LLMProviders.Groq;
 
-/// <summary>
-/// OpenAI API docs: https://platform.openai.com/docs/api-reference
-/// </summary>
-public class OpenAIProvider : ILLMProvider
+public class GroqProvider : ILLMProvider
 {
     private const string SYSTEM = "system";
     private const string USER = "user";
@@ -19,16 +16,17 @@ public class OpenAIProvider : ILLMProvider
 
     private readonly IHttpHandler _httpHandler;
     private readonly ILogger _logger;
-    private OpenAIOptions? _options;
+    private GroqOptions? _options;
 
-    public OpenAIProvider(ILogger<OpenAIProvider> logger, IHttpHandler httpHandler)
+    public GroqProvider(ILogger<GroqProvider> logger, IHttpHandler httpHandler)
     {
         _logger = logger;
         _httpHandler = httpHandler;
     }
-    public string Name => "OpenAI";
 
-    public string Version => "1.0.7";
+    public string Name => "Groq";
+
+    public string Version => "1.0.0"; // Placeholder version
 
     public bool SupportsStreaming => true;
 
@@ -38,14 +36,14 @@ public class OpenAIProvider : ILLMProvider
     {
         if (context is null)
         {
-            context = new OpenAIContext();
+            context = new GroqContext();
         }
-        var ocontext = context as OpenAIContext;
+        var ocontext = context as GroqContext;
         if (ocontext is null)
         {
             throw new ArgumentException("Invalid context provided");
         }
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions")
         {
             Content = new StringContent(JsonSerializer.Serialize(new
             {
@@ -59,11 +57,11 @@ public class OpenAIProvider : ILLMProvider
         using var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException($"Failure calling OpenAI completions endpoint. Status Code: {response.StatusCode}");
+            throw new InvalidOperationException($"Failure calling Groq completions endpoint. Status Code: {response.StatusCode}");
         }
 
         var result = await response.Content.ReadAsStringAsync();
-        var completion = JsonSerializer.Deserialize<OpenAICompletionsResponse>(result);
+        var completion = JsonSerializer.Deserialize<GroqCompletionsResponse>(result);
         if (completion is null)
         {
             throw new InvalidOperationException("Completion was null");
@@ -72,7 +70,7 @@ public class OpenAIProvider : ILLMProvider
         {
             var responseText = completion.Choices[0].Message?.Content ?? string.Empty;
             ocontext.Conversation.Add(new ConversationItem() { User = prompt, Assistant = responseText });
-            return new OpenAIResponse() { Response = responseText, Context = context };
+            return new GroqResponse() { Response = responseText, Context = context };
         }
         _logger.LogError("Completion had no choices.");
         throw new InvalidOperationException("Completion had no choices.");
@@ -81,12 +79,12 @@ public class OpenAIProvider : ILLMProvider
     public void InitProvider(IProviderOptions? options)
     {
         _logger.LogDebug("Initializing OllamaPlugin with provided options.");
-        if (options is null || options is not OpenAIOptions || string.IsNullOrEmpty((options as OpenAIOptions)!.Model))
+        if (options is null || options is not GroqOptions || string.IsNullOrEmpty((options as GroqOptions)!.Model))
         {
             _options = null;
-            throw new InvalidOptionsException("The OpenAi Plugin requires an instance of the OpenAIOptions class with a valid Model set.");
+            throw new InvalidOptionsException("The Groq Plugin requires an instance of the GroqOptions class with a valid Model set.");
         }
-        _options = options as OpenAIOptions;
+        _options = options as GroqOptions;
     }
 
     public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null)
@@ -95,14 +93,14 @@ public class OpenAIProvider : ILLMProvider
 
         if (context is null)
         {
-            context = new OpenAIContext();
+            context = new GroqContext();
         }
-        var ocontext = context as OpenAIContext;
+        var ocontext = context as GroqContext;
         if (ocontext is null)
         {
             throw new ArgumentException("Invalid context provided");
         }
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions")
         {
             Content = new StringContent(JsonSerializer.Serialize(new
             {
@@ -116,7 +114,7 @@ public class OpenAIProvider : ILLMProvider
         var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
         // Set current prompt and partial response
-        var oContext = (OpenAIContext)context;
+        var oContext = (GroqContext)context;
         oContext.CurrentPrompt = prompt;
         oContext.PartialResponse = string.Empty;
 
@@ -144,10 +142,10 @@ public class OpenAIProvider : ILLMProvider
                 }
 
                 // Deserialize the event data
-                var eventResponse = JsonSerializer.Deserialize<OpenAICompletionsResponse>(line);
-                if (eventResponse == null || 
-                    eventResponse.Choices is null || 
-                    eventResponse.Choices.Length == 0 || 
+                var eventResponse = JsonSerializer.Deserialize<GroqCompletionsResponse>(line);
+                if (eventResponse == null ||
+                    eventResponse.Choices is null ||
+                    eventResponse.Choices.Length == 0 ||
                     eventResponse.Choices[0].Delta is null ||
                     (string.IsNullOrWhiteSpace(eventResponse.Choices[0].Delta!.Content) && string.IsNullOrWhiteSpace(eventResponse.Choices[0].FinishReason)))
                 {
@@ -161,12 +159,12 @@ public class OpenAIProvider : ILLMProvider
                 if (eventResponse.Choices[0].FinishReason == "stop")
                 {
                     oContext.Conversation.Add(new ConversationItem { User = prompt, Assistant = oContext.PartialResponse });
-                    await receiver.ReceiveCompletionPartAsync(new OpenAIResponse { Response = oContext.PartialResponse, Context = context }, true);
+                    await receiver.ReceiveCompletionPartAsync(new GroqResponse { Response = oContext.PartialResponse, Context = context }, true);
                     break;
                 }
                 else
                 {
-                    await receiver.ReceiveCompletionPartAsync(new OpenAIResponse { Response = eventResponse.Choices[0].Delta!.Content, Context = context }, false);
+                    await receiver.ReceiveCompletionPartAsync(new GroqResponse { Response = eventResponse.Choices[0].Delta!.Content, Context = context }, false);
                 }
             }
         }
@@ -177,10 +175,10 @@ public class OpenAIProvider : ILLMProvider
         }
     }
 
-    private List<OpenAIConversationItem> BuildPrompt(string prompt, IConversationContext? context)
+    private List<GroqConversationItem> BuildPrompt(string prompt, IConversationContext? context)
     {
-        var conversation = new List<OpenAIConversationItem>();
-        var ocontext = context as OpenAIContext;
+        var conversation = new List<GroqConversationItem>();
+        var ocontext = context as GroqContext;
         if (ocontext is null)
         {
             throw new ArgumentException("Invalid context provided");
@@ -188,40 +186,40 @@ public class OpenAIProvider : ILLMProvider
 
         if (_options is not null && !string.IsNullOrWhiteSpace(ocontext.SystemPrompt))
         {
-            conversation.Add(new OpenAIConversationItem(SYSTEM, ocontext.SystemPrompt));
+            conversation.Add(new GroqConversationItem(SYSTEM, ocontext.SystemPrompt));
         }
-        foreach(var conversationItem in ocontext.Conversation)
+        foreach (var conversationItem in ocontext.Conversation)
         {
             if (!string.IsNullOrWhiteSpace(conversationItem.User))
             {
-                conversation.Add(new OpenAIConversationItem(USER, conversationItem.User));
-                conversation.Add(new OpenAIConversationItem(ASSISTANT, conversationItem.Assistant ?? string.Empty));
+                conversation.Add(new GroqConversationItem(USER, conversationItem.User));
+                conversation.Add(new GroqConversationItem(ASSISTANT, conversationItem.Assistant ?? string.Empty));
             }
         }
-        conversation.Add(new OpenAIConversationItem(USER, prompt));
+        conversation.Add(new GroqConversationItem(USER, prompt));
         return conversation;
     }
 
-    private OpenAIResponse BuildOpenAIResponse(string prompt, OpenAICompletionsResponse result, IConversationContext? context)
+    private GroqResponse BuildGroqResponse(string prompt, GroqCompletionsResponse result, IConversationContext? context)
     {
-        var openAIResponse = new OpenAIResponse
+        var GroqResponse = new GroqResponse
         {
             Response = result.Choices![0].Text,
-            Context = context as OpenAIContext
+            Context = context as GroqContext
         };
 
-        (openAIResponse.Context as OpenAIContext)!.Conversation.Add(new ConversationItem
+        (GroqResponse.Context as GroqContext)!.Conversation.Add(new ConversationItem
         {
             User = prompt,
-            Assistant = openAIResponse?.Response ?? ""
+            Assistant = GroqResponse?.Response ?? ""
         });
 
-        return openAIResponse!;
+        return GroqResponse!;
     }
 
     public IConversationContext CreateNewContext(string? systemPrompt = null)
     {
-        return new OpenAIContext()
+        return new GroqContext()
         {
             SystemPrompt = systemPrompt ?? string.Empty
         };

@@ -42,7 +42,7 @@ internal class OpenAIChoice
     public OpenAIDelta? Delta { get; set; }
 
     [JsonPropertyName("message")]
-    public OpenAIConversationItem? Message { get; set; }
+    public OpenAIReceivedMessage? Message { get; set; }
 
 }
 

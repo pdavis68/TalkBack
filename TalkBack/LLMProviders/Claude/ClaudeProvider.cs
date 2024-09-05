@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace TalkBack.LLMProviders.Claude;
 
@@ -49,7 +50,7 @@ public class ClaudeProvider : ILLMProvider
         _httpHandler.DefaultRequestHeaders.Add("x-api-key", _options.ApiKey);
     }
 
-    public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null)
+    public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null, List<ImageUrl>? imageUrls = null)
     {
         if (_options is null)
         {
@@ -93,7 +94,7 @@ public class ClaudeProvider : ILLMProvider
         };
     }
 
-    public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null)
+    public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null, List<ImageUrl>? imageUrls = null)
     {
         if (_options is null)
         {
@@ -264,5 +265,43 @@ public class ClaudeProvider : ILLMProvider
         {
             SystemPrompt = systemPrompt ?? string.Empty
         };
+    }
+
+    public async Task<List<ILLMModel>> GetModelsAsync()
+    {
+        var models = new List<ILLMModel>();
+        models.Add(new ClaudeModel()
+        {
+            Name = "claude-3-5-sonnet-20240620",
+            Description = "model",
+            Owner = "anthropic",
+            ContextWindow = 200000,
+            SupportsImages = false
+        });
+        models.Add(new ClaudeModel()
+        {
+            Name = "claude-3-opus-20240229",
+            Description = "model",
+            Owner = "anthropic",
+            ContextWindow = 1022000004,
+            SupportsImages = false
+        });
+        models.Add(new ClaudeModel()
+        {
+            Name = "claude-3-sonnet-20240229",
+            Description = "model",
+            Owner = "anthropic",
+            ContextWindow = 200000,
+            SupportsImages = false
+        });
+        models.Add(new ClaudeModel()
+        {
+            Name = "claude-3-haiku-20240307",
+            Description = "model",
+            Owner = "anthropic",
+            ContextWindow = 200000,
+            SupportsImages = false
+        });
+        return await Task.FromResult(models);
     }
 }

@@ -12,6 +12,13 @@ otherwise single interface for interacting with the APIs, whether executing bloc
 
 TalkBack utilizes a "IConversationContext" that maintains the history of a conversation for maintaining context between calls.
 
+## Supporter LLMs
+
+Ollama
+OpenAI
+Claude
+Groq
+
 ## Installation
 
 ```

@@ -1,9 +1,10 @@
-﻿using System.Net.Http.Headers;
+﻿using Microsoft.Extensions.Logging;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using TalkBack.Exceptions;
 using TalkBack.Interfaces;
-using Microsoft.Extensions.Logging;
 using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.OpenAI;
@@ -34,7 +35,7 @@ public class OpenAIProvider : ILLMProvider
 
     // Constructor and properties
 
-    public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null)
+    public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null, List<ImageUrl>? imageUrls = null)
     {
         if (context is null)
         {
@@ -89,7 +90,7 @@ public class OpenAIProvider : ILLMProvider
         _options = options as OpenAIOptions;
     }
 
-    public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null)
+    public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null, List<ImageUrl>? imageUrls = null)
     {
         _httpHandler.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
 
@@ -188,19 +189,42 @@ public class OpenAIProvider : ILLMProvider
 
         if (_options is not null && !string.IsNullOrWhiteSpace(ocontext.SystemPrompt))
         {
-            conversation.Add(new OpenAIConversationItem(SYSTEM, ocontext.SystemPrompt));
+            conversation.Add(new OpenAIConversationItem(SYSTEM, ContentFromString(ocontext.SystemPrompt)));
         }
         foreach(var conversationItem in ocontext.Conversation)
         {
             if (!string.IsNullOrWhiteSpace(conversationItem.User))
             {
-                conversation.Add(new OpenAIConversationItem(USER, conversationItem.User));
-                conversation.Add(new OpenAIConversationItem(ASSISTANT, conversationItem.Assistant ?? string.Empty));
+                if (conversationItem.ImageUrls is not null && conversationItem.ImageUrls.Count > 0)
+                {
+                    conversation.Add(new OpenAIConversationItem(USER, ContentFromStringAndImages(conversationItem.User, conversationItem.ImageUrls)));
+                }
+                else
+                {
+                    conversation.Add(new OpenAIConversationItem(USER, ContentFromString(conversationItem.User)));
+                }
+                conversation.Add(new OpenAIConversationItem(USER, ContentFromString(conversationItem.User)));
+                conversation.Add(new OpenAIConversationItem(ASSISTANT, ContentFromString(conversationItem.Assistant ?? string.Empty)));
             }
         }
-        conversation.Add(new OpenAIConversationItem(USER, prompt));
+        conversation.Add(new OpenAIConversationItem(USER, ContentFromString(prompt)));
         return conversation;
     }
+
+    private List<ContentItem> ContentFromString(string text)
+    {
+        return new List<ContentItem>() { new ContentItem { Type = "text", Text  = text} };
+    }
+    private List<ContentItem> ContentFromStringAndImages(string text, List<ImageUrl> imageUrls)
+    {
+        var content = ContentFromString(text);
+        foreach (var imageUrl in imageUrls)
+        {
+            content.Add(new ContentItem { Type = "image_url", ImageUrl = new ImageUrl() { Url = imageUrl.Url, Detail = imageUrl.Detail } });
+        }
+        return content;
+    }
+
 
     private OpenAIResponse BuildOpenAIResponse(string prompt, OpenAICompletionsResponse result, IConversationContext? context)
     {
@@ -225,5 +249,61 @@ public class OpenAIProvider : ILLMProvider
         {
             SystemPrompt = systemPrompt ?? string.Empty
         };
+    }
+
+    public async Task<List<ILLMModel>> GetModelsAsync()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://api.openai.com/v1/models");
+        request.Headers.Add("Authorization", $"Bearer {_options!.ApiKey}");
+        var req = await request.Content!.ReadAsStringAsync();
+        var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"Failure calling OpenAI models endpoint. Status Code: {response.StatusCode}");
+        }
+        var modelList = await response.Content.ReadFromJsonAsync<OpenAIModelList>();
+        if (modelList is null)
+        {
+            throw new InvalidOperationException("Model list was null");
+        }
+        return modelList.Data.Select(m => PreprocessModel(m)).ToList<ILLMModel>();
+    }
+
+    private OpenAIModel PreprocessModel(OpenAIModel m)
+    {
+        switch(m.Name)
+        {
+            case "gpt-4o":
+            case "gpt-4o-mini":
+            case "gpt-4o-mini-2024-07-18":
+            case "gpt-4o-2024-05-13":
+            case "gpt-4o-2024-08-06":
+            case "chatgpt-4o-latest":
+            case "gpt-4-turbo":
+            case "gpt-4-turbo-2024-04-09":
+            case "gpt-4-turbo-preview":
+            case "gpt-4-0125-preview":
+            case "gpt-4-1106-preview":
+                m.ContextWindow = 128000;
+                m.SupportsImages = true;
+                break;
+            case "gpt-4":
+            case "gpt-4-0613":
+            case "gpt-4-0314":
+                m.ContextWindow = 8192;
+                m.SupportsImages = true;
+                break;
+            case "gpt-3.5-turbo-0125":
+            case "gpt-3.5-turbo":
+            case "gpt-3.5-turbo-1106":
+                m.ContextWindow = 16385;
+                m.SupportsImages = false;
+                break;
+            default:
+                m.ContextWindow = 4096;
+                m.SupportsImages = false;
+                break;
+        }
+        return m;
     }
 }

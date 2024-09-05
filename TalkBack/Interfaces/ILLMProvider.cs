@@ -1,15 +1,15 @@
-﻿namespace TalkBack.Interfaces;
+﻿using TalkBack.Models;
+
+namespace TalkBack.Interfaces;
 
 public interface ILLMProvider
 {
-    void InitProvider(IProviderOptions? options);
-
     public string Name { get; }
-
     bool SupportsStreaming { get; }
 
+    void InitProvider(IProviderOptions? options);
     public IConversationContext CreateNewContext(string? systemPrompt = null);
-
-    Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context);
-    Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context);
+    Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context, List<ImageUrl>? imageUrls = null);
+    Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context, List<ImageUrl>? imageUrls = null);
+    Task<List<ILLMModel>> GetModelsAsync();
 }

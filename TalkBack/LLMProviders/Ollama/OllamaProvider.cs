@@ -38,7 +38,7 @@ public class OllamaProvider : ILLMProvider
         }
     }
 
-    public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null)
+    public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null, List<ImageUrl>? imageUrls = null)
     {
         if (_options is null)
         {
@@ -73,7 +73,7 @@ public class OllamaProvider : ILLMProvider
         };
     }
 
-    public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null)
+    public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null, List<ImageUrl>? imageUrls = null)
     {
         if (_options is null)
         {
@@ -202,5 +202,10 @@ public class OllamaProvider : ILLMProvider
         {
             SystemPrompt = systemPrompt ?? string.Empty
         };
+    }
+
+    public Task<List<ILLMModel>> GetModelsAsync()
+    {
+        throw new NotImplementedException();
     }
 }

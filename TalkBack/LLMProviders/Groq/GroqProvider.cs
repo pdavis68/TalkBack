@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using TalkBack.Exceptions;
 using TalkBack.Interfaces;
+using TalkBack.LLMProviders.OpenAI;
 using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.Groq;
@@ -32,7 +34,7 @@ public class GroqProvider : ILLMProvider
 
     // Constructor and properties
 
-    public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null)
+    public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null, List<ImageUrl>? imageUrls = null)
     {
         if (context is null)
         {
@@ -87,7 +89,7 @@ public class GroqProvider : ILLMProvider
         _options = options as GroqOptions;
     }
 
-    public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null)
+    public async Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context = null, List<ImageUrl>? imageUrls = null)
     {
         _httpHandler.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
 
@@ -223,5 +225,23 @@ public class GroqProvider : ILLMProvider
         {
             SystemPrompt = systemPrompt ?? string.Empty
         };
+    }
+
+    public async Task<List<ILLMModel>> GetModelsAsync()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://api.groq.com/v1/models");
+        request.Headers.Add("Authorization", $"Bearer {_options!.ApiKey}");
+        var req = await request.Content!.ReadAsStringAsync();
+        var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"Failure calling OpenAI models endpoint. Status Code: {response.StatusCode}");
+        }
+        var modelList = await response.Content.ReadFromJsonAsync<OpenAIModelList>();
+        if (modelList is null)
+        {
+            throw new InvalidOperationException("Model list was null");
+        }
+        return modelList.Data.ToList<ILLMModel>();
     }
 }

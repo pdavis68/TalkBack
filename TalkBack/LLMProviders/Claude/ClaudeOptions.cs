@@ -11,7 +11,7 @@ public class ClaudeOptions : IProviderOptions
     // Required options
     public string? Model { get; set; }
     public string? AnthropicVersion { get; set; } = "2023-06-01";
-    public string ApiKey { get; set; } = string.Empty;
+    public string? ApiKey { get; set; }
     public string AuthToken { get; set; } = string.Empty;
     public int MaxTokensToSample { get; set; } = 256;
 

@@ -5,6 +5,8 @@ using TalkBack.Exceptions;
 using TalkBack.Interfaces;
 using TalkBack.Models;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
+using TalkBack.LLMProviders.OpenAI;
 
 namespace TalkBack.LLMProviders.Ollama;
 
@@ -204,8 +206,19 @@ public class OllamaProvider : ILLMProvider
         };
     }
 
-    public Task<List<ILLMModel>> GetModelsAsync()
+    public async Task<List<ILLMModel>> GetModelsAsync()
     {
-        throw new NotImplementedException();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{_options!.ServerUrl}/api/tags");
+        var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"Failure calling OpenAI models endpoint. Status Code: {response.StatusCode}");
+        }
+        var modelList = await response.Content.ReadFromJsonAsync<OllamaModelList>();
+        if (modelList is null)
+        {
+            throw new InvalidOperationException("Model list was null");
+        }
+        return modelList.Models.ToList<ILLMModel>();
     }
 }

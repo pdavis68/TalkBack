@@ -255,7 +255,6 @@ public class OpenAIProvider : ILLMProvider
     {
         var request = new HttpRequestMessage(HttpMethod.Get, "https://api.openai.com/v1/models");
         request.Headers.Add("Authorization", $"Bearer {_options!.ApiKey}");
-        var req = await request.Content!.ReadAsStringAsync();
         var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseContentRead);
         if (!response.IsSuccessStatusCode)
         {

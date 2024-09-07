@@ -9,7 +9,7 @@ public class OpenAIOptions : IProviderOptions
     public float Temperature { get; set; }
     public int MaxTokens { get; set; }
     public float TopP { get; set; }
-    public int FrequencyPenalty { get; set; }
-    public int PresencePenalty { get; set; }
-    public int Stop { get; set; }
+    public float FrequencyPenalty { get; set; }
+    public float PresencePenalty { get; set; }
+    public string? Stop { get; set; }
 }

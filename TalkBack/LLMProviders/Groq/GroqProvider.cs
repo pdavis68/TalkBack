@@ -229,15 +229,14 @@ public class GroqProvider : ILLMProvider
 
     public async Task<List<ILLMModel>> GetModelsAsync()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "https://api.groq.com/v1/models");
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://api.groq.com/openai/v1/models");
         request.Headers.Add("Authorization", $"Bearer {_options!.ApiKey}");
-        var req = await request.Content!.ReadAsStringAsync();
         var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseContentRead);
         if (!response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException($"Failure calling OpenAI models endpoint. Status Code: {response.StatusCode}");
         }
-        var modelList = await response.Content.ReadFromJsonAsync<OpenAIModelList>();
+        var modelList = await response.Content.ReadFromJsonAsync<GroqModelList>();
         if (modelList is null)
         {
             throw new InvalidOperationException("Model list was null");

@@ -18,7 +18,7 @@ public class ClaudeOptions : IProviderOptions
 
     // Optional options
     public string[]? StopSequences { get; set; }
-    public decimal Temperature { get; set; }
-    public decimal TopP { get; set; }
+    public float Temperature { get; set; }
+    public float TopP { get; set; }
     public int TopK { get; set; }
 }

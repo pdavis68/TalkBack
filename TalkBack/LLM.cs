@@ -1,7 +1,6 @@
 using TalkBack.Exceptions;
 using TalkBack.Interfaces;
 using Microsoft.Extensions.Logging;
-using System.Xml.Linq;
 
 namespace TalkBack;
 
@@ -14,6 +13,8 @@ public class LLM : ILLM
     {
         _logger = logger;
     }
+
+    public ILLMProvider? Provider => _selectedProvider;
 
     public void SetProvider(ILLMProvider provider)
     {

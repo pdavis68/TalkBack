@@ -104,6 +104,13 @@ public class ClaudeProvider : ILLMProvider
         {
             throw new InvalidConversationContextException("Received an invalid context.");
         }
+        if (context is null)
+        {
+            context = new ClaudeContext();
+        }
+        (context as ClaudeContext)!.CurrentPrompt = prompt;
+        (context as ClaudeContext)!.PartialResponse = string.Empty;
+
         var messages = GenerateMessages(context, prompt);
         ClaudeParameters parameters = GenerateParameters(messages, context as ClaudeContext, true);
         var jsonContent = JsonSerializer.Serialize(parameters);
@@ -112,13 +119,6 @@ public class ClaudeProvider : ILLMProvider
         content.Headers.Add("x-api-key", _options.ApiKey);
         var response = await _httpHandler.PostAsync("https://api.anthropic.com/v1/messages", content);
 
-
-        if (context is null)
-        {
-            context = new ClaudeContext();
-        }
-        (context as ClaudeContext)!.CurrentPrompt = prompt;
-        (context as ClaudeContext)!.PartialResponse = string.Empty;
 
         if (response.IsSuccessStatusCode)
         {

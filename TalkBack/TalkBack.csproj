@@ -9,7 +9,7 @@
     <Title>TalkBack-LLM</Title>
 	<PackageId>TalkBack-LLM</PackageId>
     <IncludeSymbols>True</IncludeSymbols>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.0.1</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>

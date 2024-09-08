@@ -246,11 +246,12 @@ public class OpenAIProvider : ILLMProvider
         return openAIResponse!;
     }
 
-    public IConversationContext CreateNewContext(string? systemPrompt = null)
+    public IConversationContext CreateNewContext(string? systemPrompt = null, List<ConversationItem>? conversation = null)
     {
         return new OpenAIContext()
         {
-            SystemPrompt = systemPrompt ?? string.Empty
+            SystemPrompt = systemPrompt ?? string.Empty,
+            Conversation = conversation ?? new List<ConversationItem>()
         };
     }
 

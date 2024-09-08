@@ -219,11 +219,12 @@ public class GroqProvider : ILLMProvider
         return GroqResponse!;
     }
 
-    public IConversationContext CreateNewContext(string? systemPrompt = null)
+    public IConversationContext CreateNewContext(string? systemPrompt = null, List<ConversationItem>? conversation = null)
     {
         return new GroqContext()
         {
-            SystemPrompt = systemPrompt ?? string.Empty
+            SystemPrompt = systemPrompt ?? string.Empty,
+            Conversation = conversation ?? new List<ConversationItem>()
         };
     }
 

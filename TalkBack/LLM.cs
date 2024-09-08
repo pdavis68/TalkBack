@@ -1,6 +1,7 @@
 using TalkBack.Exceptions;
 using TalkBack.Interfaces;
 using Microsoft.Extensions.Logging;
+using TalkBack.Models;
 
 namespace TalkBack;
 
@@ -22,7 +23,7 @@ public class LLM : ILLM
         _selectedProvider = provider;
     }
 
-    public IConversationContext? CreateNewContext()
+    public IConversationContext? CreateNewContext(List<ConversationItem>? conversation = null)
     {
         _logger.LogDebug("CreateNewContext");
         EnsureProvider();

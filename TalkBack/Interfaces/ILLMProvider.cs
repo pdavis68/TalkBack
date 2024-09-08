@@ -8,7 +8,7 @@ public interface ILLMProvider
     bool SupportsStreaming { get; }
 
     void InitProvider(IProviderOptions? options);
-    public IConversationContext CreateNewContext(string? systemPrompt = null);
+    public IConversationContext CreateNewContext(string? systemPrompt = null, List<ConversationItem>? conversation = null);
     Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context, List<ImageUrl>? imageUrls = null);
     Task StreamCompletionAsync(ICompletionReceiver receiver, string prompt, IConversationContext? context, List<ImageUrl>? imageUrls = null);
     Task<List<ILLMModel>> GetModelsAsync();

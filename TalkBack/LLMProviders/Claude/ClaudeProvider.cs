@@ -259,11 +259,12 @@ public class ClaudeProvider : ILLMProvider
         };
     }
 
-    public IConversationContext CreateNewContext(string? systemPrompt = null)
+    public IConversationContext CreateNewContext(string? systemPrompt = null, List<ConversationItem>? conversation = null)
     {
         return new ClaudeContext()
         {
-            SystemPrompt = systemPrompt ?? string.Empty
+            SystemPrompt = systemPrompt ?? string.Empty,
+            ContextData = conversation ?? new List<ConversationItem>()
         };
     }
 

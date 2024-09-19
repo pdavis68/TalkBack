@@ -7,7 +7,7 @@ public class OpenAIConversationItemConverter : JsonConverter<OpenAIConversationI
 {
     public override OpenAIConversationItem Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        // Implement deserialization if needed
+        // Not needed. We only need to serialize ConversationItem objects.
         throw new NotImplementedException();
     }
 

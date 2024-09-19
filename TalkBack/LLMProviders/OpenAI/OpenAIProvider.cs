@@ -46,14 +46,17 @@ public class OpenAIProvider : ILLMProvider
         {
             throw new ArgumentException("Invalid context provided");
         }
+
+        var content = JsonSerializer.Serialize(new
+        {
+            model = _options!.Model,
+            messages = BuildPrompt(prompt, context),
+            stream = false
+        });
+
         var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
         {
-            Content = new StringContent(JsonSerializer.Serialize(new
-            {
-                model = _options!.Model,
-                messages = BuildPrompt(prompt, context),
-                stream = false
-            }), Encoding.UTF8, "application/json"),
+            Content = new StringContent(content, Encoding.UTF8, "application/json"),
         };
         request.Headers.Add("Authorization", $"Bearer {_options.ApiKey}");
         var req = await request.Content.ReadAsStringAsync();

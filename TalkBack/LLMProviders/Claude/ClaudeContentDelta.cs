@@ -2,7 +2,7 @@
 
 namespace TalkBack.LLMProviders.Claude;
 
-internal class ClaudeContentDelta
+public class ClaudeContentDelta
 {
     [JsonPropertyName("type")]
     public string Type { get; set; } = string.Empty;

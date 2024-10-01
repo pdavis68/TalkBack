@@ -3,7 +3,7 @@ using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.Groq;
 
-internal class GroqContext : IConversationContext
+public class GroqContext : IConversationContext
 {
     public List<ConversationItem> Conversation { get; set; } = new List<ConversationItem>();
     public string SystemPrompt { get; set; } = string.Empty;

@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using TalkBack.Interfaces;
 using TalkBack.LLMProviders.Claude;
+using TalkBack.Models;
 
 namespace TalkBack.Test.LLMProviders.Claude;
 

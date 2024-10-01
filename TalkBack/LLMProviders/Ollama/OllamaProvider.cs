@@ -45,7 +45,11 @@ public class OllamaProvider : ILLMProvider
         {
             throw new InvalidOperationException("You must Init the model first.");
         }
-        if (context is not null && context is not OllamaContext)
+        if (context is null)
+        {
+            context = CreateNewContext();
+        }
+        else if (context is not OllamaContext)
         {
             throw new InvalidConversationContextException("Received an invalid context.");
         }
@@ -162,9 +166,9 @@ public class OllamaProvider : ILLMProvider
 
     private string GeneratePrompt(IConversationContext? context, string prompt)
     {
-        var ctxt = (context as OllamaContext)!;
+        var ctxt = context as OllamaContext;
         string newPrompt = string.Empty;
-        if (ctxt.Conversation.Count > 0)
+        if (ctxt != null && ctxt.Conversation.Count > 0)
         {
             newPrompt = "You are 'Assistant'. This is the conversation so far between the user, and you;\n\n";
             foreach (var item in ctxt.Conversation)

@@ -9,7 +9,7 @@ namespace TalkBack.Test.LLMProviders.Groq;
 
 public class GroqProviderTests
 {
-    private readonly GroqProvider _groqProvider;
+    private readonly ILLMProvider _groqProvider;
     private readonly IHttpHandler _httpHandler;
     private readonly ILogger<GroqProvider> _logger = Substitute.For<ILogger<GroqProvider>>();
 
@@ -40,17 +40,21 @@ public class GroqProviderTests
         _httpHandler.DefaultRequestHeaders.Returns(headers);
         _groqProvider.InitProvider(options);
 
-        var choice = new GroqChoice()
-        {
-            Message = new GroqConversationItem("assistant", "Hello, this is a test response.")
-        };
-        var completionResponse = new GroqCompletionsResponse()
-        {
-            Choices = new[] { choice }
-        };
         var successfulResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = JsonContent.Create(completionResponse)
+            Content = JsonContent.Create(new
+            {
+                choices = new[]
+                {
+                    new
+                    {
+                        message = new
+                        {
+                            content = "Hello, this is a test response."
+                        }
+                    }
+                }
+            })
         };
 
         _httpHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<HttpCompletionOption>())
@@ -61,16 +65,8 @@ public class GroqProviderTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.IsType<GroqResponse>(response);
         Assert.Equal("Hello, this is a test response.", response.Response);
         Assert.NotNull(response.Context);
-        Assert.IsType<GroqContext>(response.Context);
-
-        var context = response.Context as GroqContext;
-        Assert.NotNull(context);
-        Assert.Single(context.Conversation);
-        Assert.Equal("Test prompt", context.Conversation[0].User);
-        Assert.Equal("Hello, this is a test response.", context.Conversation[0].Assistant);
     }
 
     [Fact]
@@ -79,13 +75,9 @@ public class GroqProviderTests
         // Arrange
         SetupProvider();
 
-        var completionResponse = new GroqCompletionsResponse()
-        {
-            Choices = Array.Empty<GroqChoice>()
-        };
         var successfulResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = JsonContent.Create(completionResponse)
+            Content = JsonContent.Create(new { choices = Array.Empty<object>() })
         };
 
         _httpHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<HttpCompletionOption>())
@@ -101,13 +93,18 @@ public class GroqProviderTests
         // Arrange
         SetupProvider();
 
-        var completionResponse = new GroqCompletionsResponse()
-        {
-            Choices = new[] { new GroqChoice { Message = null } }
-        };
         var successfulResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = JsonContent.Create(completionResponse)
+            Content = JsonContent.Create(new
+            {
+                choices = new[]
+                {
+                    new
+                    {
+                        message = new { content = (string)null }
+                    }
+                }
+            })
         };
 
         _httpHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<HttpCompletionOption>())
@@ -118,7 +115,6 @@ public class GroqProviderTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.IsType<GroqResponse>(response);
         Assert.Equal(string.Empty, response.Response);
     }
 

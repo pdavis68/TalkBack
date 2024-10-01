@@ -81,15 +81,17 @@ public class ClaudeProvider : ILLMProvider
         }
         var responseOb = JsonSerializer.Deserialize<ClaudeMessageResponse>(result);
 
+        string responseText = responseOb?.Content?.FirstOrDefault()?.Text ?? string.Empty;
+
         if ((context as ClaudeContext)!.CompletionCallback is not null)
         {
-            (context as ClaudeContext)!.CompletionCallback!.Complete(Name, $"Model: {parameters.Model}", prompt, responseOb?.Content?[0].Text ?? string.Empty);
+            (context as ClaudeContext)!.CompletionCallback!.Complete(Name, $"Model: {parameters.Model}", prompt, responseText);
         }
-        (context as ClaudeContext)!.ContextData.Add(new ConversationItem { User = prompt, Assistant = responseOb!.Content?[0].Text ?? "" });
+        (context as ClaudeContext)!.ContextData.Add(new ConversationItem { User = prompt, Assistant = responseText });
 
         return new ClaudeResponse()
         {
-            Response = responseOb?.Content?[0].Text ?? string.Empty,
+            Response = responseText,
             Context = context
         };
     }

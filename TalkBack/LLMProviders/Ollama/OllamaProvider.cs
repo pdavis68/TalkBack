@@ -6,7 +6,6 @@ using TalkBack.Interfaces;
 using TalkBack.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
-using TalkBack.LLMProviders.OpenAI;
 
 namespace TalkBack.LLMProviders.Ollama;
 

@@ -33,16 +33,7 @@ public class ClaudeProviderTests
     public async Task CompleteAsync_Success_WhenInitProviderCalled()
     {
         // Arrange
-        var options = new ClaudeOptions()
-        {
-            Model = "test-model",
-            AnthropicVersion = "2023-06-01",
-            ApiKey = "test-api-key"
-        };
-
-        var headers = new HttpRequestMessage().Headers;
-        _httpHandler.DefaultRequestHeaders.Returns(headers);
-        _claudeProvider.InitProvider(options);
+        SetupProvider();
 
         var messageItem = new ClaudeMessageItem()
         {
@@ -65,18 +56,15 @@ public class ClaudeProviderTests
             .Returns(Task.FromResult(successfulResponse));
 
         // Act
-        var response = await _claudeProvider.CompleteAsync("Test prompt");
+        var context = _claudeProvider.CreateNewContext();
+        var response = await _claudeProvider.CompleteAsync("Test prompt", context);
 
         // Assert
         Assert.NotNull(response);
-        Assert.IsType<ClaudeResponse>(response);
         Assert.Equal("Hello, this is a test response.", response.Response);
         Assert.NotNull(response.Context);
-        Assert.IsType<ClaudeContext>(response.Context);
 
-        var context = response.Context as ClaudeContext;
-        Assert.NotNull(context);
-        var conversationHistory = context.GetConverstationHistory().ToList();
+        var conversationHistory = response.Context.GetConverstationHistory().ToList();
         Assert.Single(conversationHistory);
         Assert.Equal("Test prompt", conversationHistory[0].User);
         Assert.Equal("Hello, this is a test response.", conversationHistory[0].Assistant);
@@ -154,5 +142,12 @@ public class ClaudeProviderTests
         var headers = new HttpRequestMessage().Headers;
         _httpHandler.DefaultRequestHeaders.Returns(headers);
         _claudeProvider.InitProvider(options);
+    }
+
+    private IConversationContext CreateMockContext()
+    {
+        var mockContext = Substitute.For<IConversationContext>();
+        mockContext.GetConverstationHistory().Returns(new List<ConversationItem>());
+        return mockContext;
     }
 }

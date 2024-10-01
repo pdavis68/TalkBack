@@ -58,17 +58,15 @@ public class GroqProviderTests
             .Returns(Task.FromResult(successfulResponse));
 
         // Act
-        var response = await _groqProvider.CompleteAsync("Test prompt", null);
+        var context = _groqProvider.CreateNewContext();
+        var response = await _groqProvider.CompleteAsync("Test prompt", context);
 
         // Assert
         Assert.NotNull(response);
         Assert.Equal("Hello, this is a test response.", response.Response);
         Assert.NotNull(response.Context);
-        Assert.IsType<GroqContext>(response.Context);
 
-        var context = response.Context as GroqContext;
-        Assert.NotNull(context);
-        var conversationHistory = context.GetConverstationHistory().ToList();
+        var conversationHistory = response.Context.GetConverstationHistory().ToList();
         Assert.Single(conversationHistory);
         Assert.Equal("Test prompt", conversationHistory[0].User);
         Assert.Equal("Hello, this is a test response.", conversationHistory[0].Assistant);
@@ -134,5 +132,12 @@ public class GroqProviderTests
         var headers = new HttpRequestMessage().Headers;
         _httpHandler.DefaultRequestHeaders.Returns(headers);
         _groqProvider.InitProvider(options);
+    }
+
+    private IConversationContext CreateMockContext()
+    {
+        var mockContext = Substitute.For<IConversationContext>();
+        mockContext.GetConverstationHistory().Returns(new List<ConversationItem>());
+        return mockContext;
     }
 }

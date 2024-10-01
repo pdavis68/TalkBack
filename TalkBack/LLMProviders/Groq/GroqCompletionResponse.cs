@@ -41,7 +41,7 @@ public class GroqChoice
     public GroqConversationItem? Message { get; set; }
 }
 
-internal class GroqDelta
+public class GroqDelta
 {
     [JsonPropertyName("content")]
     public string? Content { get; set; }

@@ -3,7 +3,7 @@
 namespace TalkBack.LLMProviders.OpenAI;
 
 
-internal class OpenAICompletionsResponse
+public class OpenAICompletionsResponse
 {
 
     [JsonPropertyName("id")]
@@ -23,7 +23,7 @@ internal class OpenAICompletionsResponse
 
 }
 
-internal class OpenAIChoice
+public class OpenAIChoice
 {
 
     [JsonPropertyName("text")]
@@ -46,7 +46,7 @@ internal class OpenAIChoice
 
 }
 
-internal class OpenAIDelta
+public class OpenAIDelta
 {
     [JsonPropertyName("content")]
     public string? Content { get; set; }

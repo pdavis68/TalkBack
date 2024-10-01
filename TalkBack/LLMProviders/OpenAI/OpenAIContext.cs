@@ -3,7 +3,7 @@ using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.OpenAI;
 
-internal class OpenAIContext : IConversationContext
+public class OpenAIContext : IConversationContext
 {
     public List<ConversationItem> Conversation { get; set; } = new List<ConversationItem>();
     public string SystemPrompt { get; set; } = string.Empty;

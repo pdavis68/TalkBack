@@ -3,7 +3,7 @@ using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.Ollama;
 
-internal class OllamaContext : IConversationContext
+public class OllamaContext : IConversationContext
 {
     public int[]? ContextData { get; set; }
     public List<ConversationItem> Conversation { get; set; } = new List<ConversationItem>();

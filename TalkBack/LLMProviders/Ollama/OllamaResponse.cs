@@ -2,7 +2,7 @@
 
 namespace TalkBack.LLMProviders.Ollama;
 
-internal class OllamaResponse : IModelResponse
+public class OllamaResponse : IModelResponse
 {
     public IConversationContext? Context { get; set; }
 

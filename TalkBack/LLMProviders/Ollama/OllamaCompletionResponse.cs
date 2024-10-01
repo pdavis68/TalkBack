@@ -2,7 +2,7 @@
 
 namespace TalkBack.LLMProviders.Ollama;
 
-internal class OllamaCompletionResponse
+public class OllamaCompletionResponse
 {
     [JsonPropertyName("model")]
     public string? Model { get; set; }

@@ -105,7 +105,7 @@ public class GroqProviderTests
                 {
                     new
                     {
-                        message = new { content = (string)null }
+                        message = new { content = (string?)null }
                     }
                 }
             })

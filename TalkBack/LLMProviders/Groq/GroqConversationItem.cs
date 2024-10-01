@@ -2,7 +2,7 @@
 
 namespace TalkBack.LLMProviders.Groq;
 
-internal class GroqConversationItem
+public class GroqConversationItem
 {
     public GroqConversationItem(string role, string content)
     {

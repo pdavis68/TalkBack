@@ -5,7 +5,7 @@ namespace TalkBack.LLMProviders.Ollama;
 /// <summary>
 /// These are what's passed to the model.
 /// </summary>
-internal class OllamaParameters
+public class OllamaParameters
 {
     [JsonPropertyName("prompt")]
     public string? Prompt { get; set; }

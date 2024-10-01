@@ -42,16 +42,13 @@ public class GroqProviderTests
 
         var successfulResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = JsonContent.Create(new
+            Content = JsonContent.Create(new GroqCompletionsResponse
             {
-                choices = new[]
+                Choices = new[]
                 {
-                    new
+                    new GroqChoice
                     {
-                        message = new
-                        {
-                            content = "Hello, this is a test response."
-                        }
+                        Message = new GroqConversationItem("assistant", "Hello, this is a test response.")
                     }
                 }
             })
@@ -67,6 +64,14 @@ public class GroqProviderTests
         Assert.NotNull(response);
         Assert.Equal("Hello, this is a test response.", response.Response);
         Assert.NotNull(response.Context);
+        Assert.IsType<GroqContext>(response.Context);
+
+        var context = response.Context as GroqContext;
+        Assert.NotNull(context);
+        var conversationHistory = context.GetConverstationHistory().ToList();
+        Assert.Single(conversationHistory);
+        Assert.Equal("Test prompt", conversationHistory[0].User);
+        Assert.Equal("Hello, this is a test response.", conversationHistory[0].Assistant);
     }
 
     [Fact]

@@ -27,8 +27,5 @@
     <ProjectReference Include="..\TalkBack\TalkBack.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="LLMProviders\Groq\GroqProviderTests.cs" />
-  </ItemGroup>
 
 </Project>

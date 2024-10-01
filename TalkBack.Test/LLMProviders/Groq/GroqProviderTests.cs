@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Json;
 using TalkBack.Interfaces;
 using TalkBack.LLMProviders.Groq;
+using TalkBack.Models;
 
 namespace TalkBack.Test.LLMProviders.Groq;
 

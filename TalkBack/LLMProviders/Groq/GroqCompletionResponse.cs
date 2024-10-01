@@ -2,7 +2,7 @@
 
 namespace TalkBack.LLMProviders.Groq;
 
-internal class GroqCompletionsResponse
+public class GroqCompletionsResponse
 {
     [JsonPropertyName("id")]
     public string? Id { get; set; }
@@ -20,7 +20,7 @@ internal class GroqCompletionsResponse
     public GroqChoice[]? Choices { get; set; }
 }
 
-internal class GroqChoice
+public class GroqChoice
 {
     [JsonPropertyName("text")]
     public string? Text { get; set; }

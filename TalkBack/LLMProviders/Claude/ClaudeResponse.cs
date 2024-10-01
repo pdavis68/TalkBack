@@ -2,7 +2,7 @@
 
 namespace TalkBack.LLMProviders.Claude;
 
-internal class ClaudeResponse : IModelResponse
+public class ClaudeResponse : IModelResponse
 {
     public IConversationContext? Context { get; set; }
 

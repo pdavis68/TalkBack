@@ -23,7 +23,7 @@ public class GroqProviderTests
     public async Task CompleteAsync_ThrowsException_WhenInitProviderNotCalled()
     {
         // Arrange & Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _groqProvider.CompleteAsync("test prompt"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _groqProvider.CompleteAsync("test prompt", null));
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class GroqProviderTests
             .Returns(Task.FromResult(successfulResponse));
 
         // Act
-        var response = await _groqProvider.CompleteAsync("Test prompt");
+        var response = await _groqProvider.CompleteAsync("Test prompt", null);
 
         // Assert
         Assert.NotNull(response);
@@ -84,7 +84,7 @@ public class GroqProviderTests
             .Returns(Task.FromResult(successfulResponse));
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _groqProvider.CompleteAsync("Test prompt"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _groqProvider.CompleteAsync("Test prompt", null));
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class GroqProviderTests
             .Returns(Task.FromResult(successfulResponse));
 
         // Act
-        var response = await _groqProvider.CompleteAsync("Test prompt");
+        var response = await _groqProvider.CompleteAsync("Test prompt", null);
 
         // Assert
         Assert.NotNull(response);

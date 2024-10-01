@@ -76,9 +76,10 @@ public class ClaudeProviderTests
 
         var context = response.Context as ClaudeContext;
         Assert.NotNull(context);
-        Assert.Single(context.ContextData);
-        Assert.Equal("Test prompt", context.ContextData[0].User);
-        Assert.Equal("Hello, this is a test response.", context.ContextData[0].Assistant);
+        var conversationHistory = context.GetConverstationHistory().ToList();
+        Assert.Single(conversationHistory);
+        Assert.Equal("Test prompt", conversationHistory[0].User);
+        Assert.Equal("Hello, this is a test response.", conversationHistory[0].Assistant);
     }
 
     [Fact]

@@ -3,9 +3,9 @@ using TalkBack.Models;
 
 namespace TalkBack.LLMProviders.Claude;
 
-internal class ClaudeContext : IConversationContext
+public class ClaudeContext : IConversationContext
 {
-    public List<ConversationItem> ContextData { get; set; } = new List<ConversationItem>();
+    public List<ConversationItem> ContextData { get; internal set; } = new List<ConversationItem>();
     public string SystemPrompt { get; set; } = string.Empty;
     public string PartialResponse { get; set; } = string.Empty;
     public string CurrentPrompt { get; set; } = string.Empty;

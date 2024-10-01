@@ -1,10 +1,7 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
-using TalkBack.Exceptions;
 using TalkBack.Interfaces;
 using TalkBack.LLMProviders.Groq;
 

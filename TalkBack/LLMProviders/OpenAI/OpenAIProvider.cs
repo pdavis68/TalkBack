@@ -37,6 +37,11 @@ public class OpenAIProvider : ILLMProvider
 
     public async Task<IModelResponse> CompleteAsync(string prompt, IConversationContext? context = null, List<ImageUrl>? imageUrls = null)
     {
+        if (_options == null)
+        {
+            throw new InvalidOperationException("Provider not initialized. Call InitProvider first.");
+        }
+
         if (context is null)
         {
             context = new OpenAIContext();
@@ -49,7 +54,7 @@ public class OpenAIProvider : ILLMProvider
 
         var content = JsonSerializer.Serialize(new
         {
-            model = _options!.Model,
+            model = _options.Model,
             messages = BuildPrompt(prompt, context),
             stream = false
         });

@@ -12,14 +12,11 @@ namespace TalkBack.Test.LLMProviders.Claude;
 public class ClaudeProviderTests
 {
     private readonly ClaudeProvider _claudeProvider;
-
-
     private readonly IHttpHandler _httpHandler;
-    private readonly ILogger<ClaudeProvider>  _logger = Substitute.For<ILogger<ClaudeProvider>>();
+    private readonly ILogger<ClaudeProvider> _logger = Substitute.For<ILogger<ClaudeProvider>>();
 
     public ClaudeProviderTests()
     {
-
         _httpHandler = Substitute.For<IHttpHandler>();
         _claudeProvider = new ClaudeProvider(_logger, _httpHandler);
     }
@@ -28,12 +25,8 @@ public class ClaudeProviderTests
     public async Task CompleteAsync_ThrowsException_WhenInitProviderNotCalled()
     {
         // Arrange 
-
-        // oops
-
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => _claudeProvider.CompleteAsync("test prompt"));
-
     }
 
     [Fact]
@@ -42,39 +35,123 @@ public class ClaudeProviderTests
         // Arrange
         var options = new ClaudeOptions()
         {
-            Model = "test",
+            Model = "test-model",
             AnthropicVersion = "2023-06-01",
-            ApiKey = "key"
+            ApiKey = "test-api-key"
         };
 
         var headers = new HttpRequestMessage().Headers;
         _httpHandler.DefaultRequestHeaders.Returns(headers);
         _claudeProvider.InitProvider(options);
 
-
-        var mi = new ClaudeMessageItem[1];
-        mi[0] = new ClaudeMessageItem()
+        var messageItem = new ClaudeMessageItem()
         {
-            Text = "hello"
+            Text = "Hello, this is a test response.",
+            Type = "text"
         };
-        ClaudeMessageResponse cmr = new ClaudeMessageResponse()
+        var messageResponse = new ClaudeMessageResponse()
         {
-            Content = mi
+            Content = new[] { messageItem },
+            StopReason = "end_turn",
+            Model = "test-model",
+            Role = "assistant"
         };
         var successfulResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-
-            Content = JsonContent.Create(cmr)
+            Content = JsonContent.Create(messageResponse)
         };
 
-
-        // Act & Assert
         _httpHandler.PostAsync(Arg.Any<string>(), Arg.Any<HttpContent>())
             .Returns(Task.FromResult(successfulResponse));
-        var response = await _claudeProvider.CompleteAsync("test prompt");
 
-        // Additional assertions based on expected behavior of CompleteAsync
-        // Note: This example assumes a successful completion, adjust according to your expectations
+        // Act
+        var response = await _claudeProvider.CompleteAsync("Test prompt");
+
+        // Assert
         Assert.NotNull(response);
+        Assert.IsType<ClaudeResponse>(response);
+        Assert.Equal("Hello, this is a test response.", response.Response);
+        Assert.NotNull(response.Context);
+        Assert.IsType<ClaudeContext>(response.Context);
+
+        var context = response.Context as ClaudeContext;
+        Assert.NotNull(context);
+        Assert.Single(context.ContextData);
+        Assert.Equal("Test prompt", context.ContextData[0].User);
+        Assert.Equal("Hello, this is a test response.", context.ContextData[0].Assistant);
+    }
+
+    [Fact]
+    public async Task CompleteAsync_HandlesEmptyResponse()
+    {
+        // Arrange
+        SetupProvider();
+
+        var messageResponse = new ClaudeMessageResponse()
+        {
+            Content = Array.Empty<ClaudeMessageItem>(),
+            StopReason = "end_turn",
+            Model = "test-model",
+            Role = "assistant"
+        };
+        var successfulResponse = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(messageResponse)
+        };
+
+        _httpHandler.PostAsync(Arg.Any<string>(), Arg.Any<HttpContent>())
+            .Returns(Task.FromResult(successfulResponse));
+
+        // Act
+        var response = await _claudeProvider.CompleteAsync("Test prompt");
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.IsType<ClaudeResponse>(response);
+        Assert.Equal(string.Empty, response.Response);
+    }
+
+    [Fact]
+    public async Task CompleteAsync_HandlesNullContent()
+    {
+        // Arrange
+        SetupProvider();
+
+        var messageResponse = new ClaudeMessageResponse()
+        {
+            Content = null,
+            StopReason = "end_turn",
+            Model = "test-model",
+            Role = "assistant"
+        };
+        var successfulResponse = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(messageResponse)
+        };
+
+        _httpHandler.PostAsync(Arg.Any<string>(), Arg.Any<HttpContent>())
+            .Returns(Task.FromResult(successfulResponse));
+
+        // Act
+        var response = await _claudeProvider.CompleteAsync("Test prompt");
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.IsType<ClaudeResponse>(response);
+        Assert.Equal(string.Empty, response.Response);
+    }
+
+    private void SetupProvider()
+    {
+        var options = new ClaudeOptions()
+        {
+            Model = "test-model",
+            AnthropicVersion = "2023-06-01",
+            ApiKey = "test-api-key"
+        };
+
+        var headers = new HttpRequestMessage().Headers;
+        _httpHandler.DefaultRequestHeaders.Returns(headers);
+        _claudeProvider.InitProvider(options);
     }
 }

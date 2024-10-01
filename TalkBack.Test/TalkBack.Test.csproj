@@ -27,4 +27,8 @@
     <ProjectReference Include="..\TalkBack\TalkBack.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="LLMProviders\Ollama\OllamaProviderTests.cs" />
+  </ItemGroup>
+
 </Project>

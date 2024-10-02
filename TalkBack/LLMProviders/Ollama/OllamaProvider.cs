@@ -216,7 +216,7 @@ public class OllamaProvider : ILLMProvider
         var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseContentRead);
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException($"Failure calling OpenAI models endpoint. Status Code: {response.StatusCode}");
+            throw new InvalidOperationException($"Failure calling Ollama models endpoint. Status Code: {response.StatusCode}");
         }
         var modelList = await response.Content.ReadFromJsonAsync<OllamaModelList>();
         if (modelList is null)

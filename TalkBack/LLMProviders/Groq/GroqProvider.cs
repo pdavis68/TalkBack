@@ -240,7 +240,7 @@ public class GroqProvider : ILLMProvider
         var response = await _httpHandler.SendAsync(request, HttpCompletionOption.ResponseContentRead);
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException($"Failure calling OpenAI models endpoint. Status Code: {response.StatusCode}");
+            throw new InvalidOperationException($"Failure calling Groq models endpoint. Status Code: {response.StatusCode}");
         }
         var modelList = await response.Content.ReadFromJsonAsync<GroqModelList>();
         if (modelList is null)

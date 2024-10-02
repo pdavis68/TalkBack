@@ -57,7 +57,7 @@ public class OllamaProvider : ILLMProvider
         OllamaParameters parameters = GenerateParameters(newPrompt, context as OllamaContext, false);
         var jsonContent = JsonSerializer.Serialize(parameters);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-        var response = await _httpHandler.PostAsync(_options.ServerUrl + "/generate", content);
+        var response = await _httpHandler.PostAsync(_options.ServerUrl + "/api/generate", content);
         var result = await response.Content.ReadAsStringAsync();
 
         if (context is null)
@@ -91,7 +91,7 @@ public class OllamaProvider : ILLMProvider
         OllamaParameters parameters = GenerateParameters(prompt, context as OllamaContext, true);
         var jsonContent = JsonSerializer.Serialize(parameters);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-        var response = await _httpHandler.PostAsync(_options.ServerUrl + "/generate", content);
+        var response = await _httpHandler.PostAsync(_options.ServerUrl + "/api/generate", content);
         if (context is null)
         {
             context = new OllamaContext();

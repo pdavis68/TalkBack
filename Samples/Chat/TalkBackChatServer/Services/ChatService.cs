@@ -65,6 +65,8 @@ namespace TalkBackChatServer.Services
         public async Task<string> ChatAsync(string message, int conversationId, Action<string>? callback = null)
         {
             _logger.LogInformation($"ChatAsync - {conversationId}");
+
+            // Get any existing conversation from the db and generate a conversation history from it.
             var dbConversation = _dbContext.Conversations.FirstOrDefault(p=>p.Id == conversationId);
             if (dbConversation is null)
             {
@@ -87,17 +89,26 @@ namespace TalkBackChatServer.Services
                 });
             }
 
-            // Add user message to db
+            // Now add the user's prompt to the db
             _dbContext.Messages.Add(new Message() { ConversationId = _conversationId, Content = message, Role = Constants.User });
             await _dbContext.SaveChangesAsync();
 
+            // Set up our provider
             _llmProvider = GetProvider(dbConversation.LLM!, dbConversation.Model);
             _llm.SetProvider(_llmProvider);
+
+            // Load the conversation history into the context
             var context = _llmProvider.CreateNewContext(dbConversation.SystemMessage, conversationHistory);
+
+            // Set the callback for streaming completions
             _callback = callback;
+
             if (callback is null)
             {
+                // This is here for testing non-streaming completions, but requires code changes.
+
                 var response = await _llm.CompleteAsync(message, context);
+
                 // Add assistant message to db
                 _logger.LogInformation($"Inserting Assistant message {response.Response}");
                 dbMessages.Add(new Message() { ConversationId = _conversationId, Content = response.Response, Role = Constants.Assistant });
@@ -106,6 +117,7 @@ namespace TalkBackChatServer.Services
             }
             else
             {
+                // Callbacks will go to ReceiveCompletionPartAsync() below.
                 await _llm.StreamCompletionAsync(this, message, context);
                 return "";
             }
@@ -113,9 +125,10 @@ namespace TalkBackChatServer.Services
 
         public async Task<string> GenerateTitleAsync(string text)
         {
+            // Save the previous provider so we can restore it after generating the title
             var origProvider = _llm.Provider;
 
-            _llmProvider = GetProvider(_llmConfig.TitleLLM??"Something New", _llmConfig.TitleModel);
+            _llmProvider = GetProvider(_llmConfig.TitleLLM, _llmConfig.TitleModel);
             _llm.SetProvider(_llmProvider);
             var prompt = $"Below is the text that a user typed. It's probably a question, but maybe not." +
                 $" Please generate a short title for what they typed. Try to keep the title under about 50 characters. Respond ONLY with the title!" +

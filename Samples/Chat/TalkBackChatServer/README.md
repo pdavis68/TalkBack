@@ -18,3 +18,12 @@ The TitleLLM and TitleModel are the LLM and model used to create titles for the 
 
 Then just run the project and open the client HTML in a browser.
 
+## Sights to see
+
+The program.cs has the `builder.Services.RegisterTalkBack();`
+
+Pretty much everything else happens in ChatService.cs.
+
+`GetProvider()` demonstrates using the ProviderActivator to create providers.
+`GenerateTitleAsync()` demonstrates using `ILLM.CompleteAsync()`
+`ChatAsync()` demonstrates creating a context with a conversation history and streaming completions

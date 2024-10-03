@@ -14,10 +14,10 @@ TalkBack utilizes a "IConversationContext" that maintains the history of a conve
 
 ## Supporter LLMs
 
-Ollama
-OpenAI
-Claude
-Groq
+- Ollama
+- OpenAI
+- Claude
+- Groq
 
 ## Installation
 
@@ -178,3 +178,5 @@ public class StreamReceiver : ICompletionReceiver
 ## More
 
 See the Wiki for some more realistic examples with normal dependency injection.
+
+And there's a sample bare-bones chat server and client in the Samples directory.

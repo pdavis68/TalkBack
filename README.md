@@ -178,3 +178,5 @@ public class StreamReceiver : ICompletionReceiver
 ## More
 
 See the Wiki for some more realistic examples with normal dependency injection.
+
+And there's a sample bare-bones chat server and client in the Samples directory.

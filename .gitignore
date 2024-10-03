@@ -8,3 +8,7 @@
 /.vs/ProjectEvaluation
 /TalkBack.Test/bin/Release/net8.0
 .aider*
+/.vs
+/Samples/Chat/TalkBackChatServer/.vs
+/Samples/Chat/TalkBackChatServer/bin
+/Samples/Chat/TalkBackChatServer/obj

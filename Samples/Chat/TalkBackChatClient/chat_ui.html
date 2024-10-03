@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talkback Chat</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            height: 100%;
+        }
+        .sidebar {
+            width: 25%;
+            background-color: #f0f0f0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-area {
+            width: 75%;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .input-area {
+            padding: 20px;
+            background-color: #f0f0f0;
+            display: flex;
+        }
+        .message {
+            max-width: 70%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .user-message {
+            background-color: #dcf8c6;
+            align-self: flex-start;
+        }
+        .llm-message {
+            background-color: #e6e6e6;
+            align-self: flex-end;
+        }
+        select, textarea, input[type="text"] {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 10px;
+        }
+        #prompt-input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        #conversations {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .conversation-card {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .conversation-card:hover {
+            background-color: #f0f0f0;
+        }
+        .conversation-card {
+            position: relative;
+        }
+        .delete-btn {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            cursor: pointer;
+            color: #ff0000;
+            font-weight: bold;
+        }
+        #system-prompt {
+            resize: none;
+        }
+        #prompt-input {
+            flex-grow: 1;
+            margin-right: 10px;
+            overflow-y: hidden;
+            min-height: 20px;
+            max-height: 100px;
+        }
+        .conversations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #new-conversation-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Talkback Chat</h2>
+            <select id="llm-selector">
+                <option value="">Select LLM</option>
+                <option value="gpt">GPT</option>
+                <option value="bert">BERT</option>
+                <option value="t5">T5</option>
+            </select>
+            <select id="model-selector">
+                <option value="">Select Model</option>
+            </select>
+            <textarea id="system-prompt" rows="4" placeholder="Enter system prompt" style="resize: none;">You are a helpful assistant.</textarea>
+            <div id="conversations">
+                <!-- Conversations will be dynamically added here -->
+            </div>
+        </div>
+        <div class="chat-area">
+            <div class="chat-messages" id="chat-messages">
+                <!-- Messages will be dynamically added here -->
+            </div>
+            <div class="input-area">
+                <textarea id="prompt-input" placeholder="Enter your message..." rows="1"></textarea>
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = 'https://localhost:7097'; // Make this configurable
+        const llmSelector = document.getElementById('llm-selector');
+        const modelSelector = document.getElementById('model-selector');
+        const chatMessages = document.getElementById('chat-messages');
+        const promptInput = document.getElementById('prompt-input');
+        
+        // Auto-resize prompt input
+        promptInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            if (this.rows < 5 && this.scrollHeight > this.clientHeight) {
+                this.rows += 1;
+            }
+        });
+        const conversationsDiv = document.getElementById('conversations');
+
+        // Fetch providers when the page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchProviders();
+            loadSavedSelections();
+        });
+
+        llmSelector.addEventListener('change', async () => {
+            await updateModelOptions();
+            saveSelections();
+        });
+
+        modelSelector.addEventListener('change', saveSelections);
+
+        async function fetchProviders() {
+            try {
+                const response = await fetch(`${baseUrl}/api/Chat/Providers`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const providers = await response.json();
+                llmSelector.innerHTML = '<option value="">Select LLM</option>';
+                providers.forEach(provider => addOption(llmSelector, provider, provider));
+            } catch (error) {
+                console.error('Error fetching providers:', error);
+                alert('Failed to fetch providers. Please check the console for more details.');
+            }
+        }
+
+        async function updateModelOptions() {
+            const selectedLLM = llmSelector.value;
+            modelSelector.innerHTML = '<option value="">Select Model</option>';
+            modelSelector.disabled = !selectedLLM;
+
+            if (selectedLLM) {
+                try {
+                    const response = await fetch(`${baseUrl}/api/Chat/Models/${selectedLLM}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const models = await response.json();
+                    models.sort((a, b) => a.localeCompare(b)); // Sort models alphabetically
+                    models.forEach(model => addOption(modelSelector, model, model));
+                } catch (error) {
+                    console.error('Error fetching models:', error);
+                    alert('Failed to fetch models. Please check the console for more details.');
+                }
+            }
+        }
+
+        function addOption(select, value, text) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = text;
+            select.appendChild(option);
+        }
+
+        function saveSelections() {
+            localStorage.setItem('selectedProvider', llmSelector.value);
+            localStorage.setItem('selectedModel', modelSelector.value);
+        }
+
+        async function loadSavedSelections() {
+            const savedProvider = localStorage.getItem('selectedProvider');
+            const savedModel = localStorage.getItem('selectedModel');
+
+            if (savedProvider) {
+                llmSelector.value = savedProvider;
+                await updateModelOptions();
+                if (savedModel) {
+                    modelSelector.value = savedModel;
+                }
+            }
+        }
+
+        let currentConversationId = null;
+
+        async function sendMessage() {
+            const message = promptInput.value.trim();
+            if (message) {
+                try {
+                    if (!currentConversationId) {
+                        // Create a new conversation
+                        const provider = llmSelector.value;
+                        const model = modelSelector.value;
+                        const systemPrompt = document.getElementById('system-prompt').value;
+                        const newConvResponse = await fetch(`${baseUrl}/api/Conversations/new?provider=${encodeURIComponent(provider)}&model=${encodeURIComponent(model)}&systemPrompt=${encodeURIComponent(systemPrompt)}`, {
+                            method: 'POST'
+                        });
+                        if (!newConvResponse.ok) {
+                            throw new Error(`HTTP error! status: ${newConvResponse.status}`);
+                        }
+                        currentConversationId = await newConvResponse.json();
+                    }
+
+                    // Add user message to chat
+                    addMessage(message, 'user-message');
+                    promptInput.value = '';
+
+                    // Create a new message div for the LLM response
+                    const llmMessageDiv = document.createElement('div');
+                    llmMessageDiv.className = 'message llm-message';
+                    chatMessages.appendChild(llmMessageDiv);
+
+                    // Send the message and handle streaming response
+                    const chatResponse = await fetch(`${baseUrl}/api/Chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            conversationId: currentConversationId,
+                            message: message
+                        })
+                    });
+
+                    if (!chatResponse.ok) {
+                        throw new Error(`HTTP error! status: ${chatResponse.status}`);
+                    }
+
+                    const reader = chatResponse.body.getReader();
+                    const decoder = new TextDecoder();
+                    let responseText = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        const chunk = decoder.decode(value, { stream: true });
+                        responseText += chunk;
+                        llmMessageDiv.innerHTML = marked.parse(responseText);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+
+                    // Refresh the conversations list
+                    await fetchConversations();
+
+                    // If this was the first message in a new conversation, fetch the conversation list
+                    if (currentConversationId === null) {
+                        await fetchConversations();
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    alert('Failed to send message. Please check the console for more details.');
+                }
+            }
+        }
+
+        function addMessage(text, className) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            messageDiv.innerHTML = marked.parse(text);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Fetch conversations when the page loads
+        fetchConversations();
+
+        async function fetchConversations() {
+            try {
+                const response = await fetch(`${baseUrl}/api/Conversations`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                conversationsDiv.innerHTML = '<div class="conversations-header"><h3>Conversations</h3><button id="new-conversation-btn" onclick="startNewConversation()">New Conversation</button></div>';
+                data.conversations.forEach(conv => {
+                    const convDiv = document.createElement('div');
+                    convDiv.className = 'conversation-card';
+                    convDiv.textContent = conv.title;
+                    convDiv.onclick = (e) => {
+                        if (!e.target.classList.contains('delete-btn')) {
+                            loadConversation(conv.id);
+                        }
+                    };
+                    const deleteBtn = document.createElement('span');
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.textContent = 'X';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        deleteConversation(conv.id);
+                    };
+                    convDiv.appendChild(deleteBtn);
+                    conversationsDiv.appendChild(convDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching conversations:', error);
+                alert('Failed to fetch conversations. Please check the console for more details.');
+            }
+        }
+
+        async function loadConversation(id) {
+            try {
+                const response = await fetch(`${baseUrl}/api/Conversations/${id}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const conversation = await response.json();
+                chatMessages.innerHTML = ''; // Clear existing messages
+                conversation.messages.forEach(message => {
+                    const className = message.role === 'User' ? 'user-message' : 'llm-message';
+                    addMessage(message.content, className);
+                });
+
+                // Populate LLM, model, and system prompt
+                llmSelector.value = conversation.llm;
+                await updateModelOptions(); // Update model options based on selected LLM
+                modelSelector.value = conversation.model;
+                console.log(conversation);
+                document.getElementById('system-prompt').value = conversation['system-message'] || '';
+
+                // Set the current conversation ID
+                currentConversationId = id;
+            } catch (error) {
+                console.error('Error loading conversation:', error);
+                alert('Failed to load conversation. Please check the console for more details.');
+            }
+        }
+
+        async function deleteConversation(id) {
+            if (confirm('Are you sure you want to delete this conversation?')) {
+                try {
+                    const response = await fetch(`${baseUrl}/api/Conversations?conversationId=${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'accept': '*/*'
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    await fetchConversations(); // Refresh the conversation list
+                    if (currentConversationId === id) {
+                        // Clear the chat area if the deleted conversation was currently loaded
+                        chatMessages.innerHTML = '';
+                        currentConversationId = null;
+                        llmSelector.value = '';
+                        modelSelector.value = '';
+                        document.getElementById('system-prompt').value = '';
+                    }
+                } catch (error) {
+                    console.error('Error deleting conversation:', error);
+                    alert('Failed to delete conversation. Please check the console for more details.');
+                }
+            }
+        }
+
+        function startNewConversation() {
+            chatMessages.innerHTML = ''; // Clear existing messages
+            currentConversationId = null; // Reset the current conversation ID
+            promptInput.value = ''; // Clear the input field
+        }
+    </script>
+</body>
+</html>

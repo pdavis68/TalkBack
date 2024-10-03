@@ -14,10 +14,10 @@ TalkBack utilizes a "IConversationContext" that maintains the history of a conve
 
 ## Supporter LLMs
 
-Ollama
-OpenAI
-Claude
-Groq
+- Ollama
+- OpenAI
+- Claude
+- Groq
 
 ## Installation
 
